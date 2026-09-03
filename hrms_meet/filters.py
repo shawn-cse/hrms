@@ -1,0 +1,31 @@
+"""
+hrms_mail/filters.py
+"""
+
+from django import forms
+
+from hrms.filters import HRMSFilterSet, django_filters
+from hrms_meet.models import GoogleMeeting
+
+
+class GoogleMeetingFilter(HRMSFilterSet):
+    """
+    AutomationFilter
+    """
+
+    search = django_filters.CharFilter(field_name="title", lookup_expr="icontains")
+    from_date = django_filters.DateFilter(
+        field_name="start_time",
+        lookup_expr="gte",
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+    to_date = django_filters.DateFilter(
+        field_name="start_time",
+        lookup_expr="lte",
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+
+    class Meta:
+        model = GoogleMeeting
+        fields = "__all__"
+        exclude = ["attendees"]

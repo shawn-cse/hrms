@@ -1,0 +1,6 @@
+<svg width="75" height="58" viewBox="0 0 75 58" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="HRMS logo">
+  <rect x="8" y="4" width="50" height="50" rx="13" fill="#2563EB"/>
+  <path d="M20 17h7v9h12v-9h7v24h-7v-9H27v9h-7V17Z" fill="white"/>
+  <circle cx="58" cy="43" r="9" fill="#0F172A"/>
+  <path d="M54 43h8M58 39v8" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

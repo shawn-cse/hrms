@@ -1,0 +1,126 @@
+name: hrms-app
+
+# HRMS Development Docker Compose Stack
+#
+# Development:
+#   docker compose up --build
+#
+# Background:
+#   docker compose up -d
+#
+# Production:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# IMPORTANT:
+# Development credentials below are intentionally simple.
+# Do not use these credentials in production.
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    ports:
+      - "8080:8000"
+
+    volumes:
+      - .:/app
+      - staticfiles:/app/staticfiles
+      - media:/app/media
+
+    environment:
+      DEBUG: "1"
+
+      SECRET_KEY: "dev-secret-key-change-in-production"
+
+      ALLOWED_HOSTS: "localhost,127.0.0.1,0.0.0.0"
+
+      CSRF_TRUSTED_ORIGINS: "http://localhost:8080,http://127.0.0.1:8080"
+
+      DB_HOST: "db"
+
+      DATABASE_URL: "postgres://hrms_user:hrms_dev_pass@db:5432/hrms_db"
+
+      DB_INIT_PASSWORD: "admin"
+
+      REDIS_URL: "redis://:hrms_dev_pass@redis:6379/0"
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+      redis:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 5
+
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+
+    environment:
+      POSTGRES_DB: "hrms_db"
+      POSTGRES_USER: "hrms_user"
+      POSTGRES_PASSWORD: "hrms_dev_pass"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hrms_user -d hrms_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+
+    command:
+      ["redis-server", "--appendonly", "yes", "--requirepass", "hrms_dev_pass"]
+
+    volumes:
+      - redis_data:/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a hrms_dev_pass ping | grep PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+
+    ports:
+      - "80:80"
+
+    volumes:
+      - staticfiles:/static:ro
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+
+    depends_on:
+      web:
+        condition: service_healthy
+
+    profiles:
+      - production
+
+    restart: unless-stopped
+
+volumes:
+  staticfiles:
+  media:
+  postgres_data:
+  redis_data:
