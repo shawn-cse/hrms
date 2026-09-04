@@ -136,9 +136,11 @@ class MyObjectives(ObjectivesList):
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.view_id = "myObjContainer"
-        if self.request.user.has_perm(
-            "pms.change_objective"
-        ) or self.request.user.has_perm("pms.delete_objective"):
+        user = getattr(self.request, "user", None)
+        if user and (
+            user.has_perm("pms.change_objective")
+            or user.has_perm("pms.delete_objective")
+        ):
             self.action_method = "self_action_col"
 
     columns = (
@@ -157,10 +159,20 @@ class MyObjectives(ObjectivesList):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        employee = self.request.user.employee_get
+        user = getattr(self.request, "user", None)
+        employee = getattr(user, "employee_get", None) if user else None
         queryset = queryset.filter(employee_objective__employee_id=employee)
-        queryset = queryset.distinct()
-        return queryset
+        return (
+            queryset.distinct()
+            .select_related("company_id")
+            .prefetch_related(
+                "managers",
+                "key_result_id",
+                "employee_objective",
+                "employee_objective__employee_id",
+                "employee_objective__employee_id__employee_user_id",
+            )
+        )
 
 
 @method_decorator(login_required, name="dispatch")
@@ -172,20 +184,23 @@ class AllObjectives(ObjectivesList):
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.view_id = "allobjContainer"
-        if self.request.user.has_perm(
-            "pms.change_objective"
-        ) or self.request.user.has_perm("pms.delete_objective"):
+        user = getattr(self.request, "user", None)
+        if user and (
+            user.has_perm("pms.change_objective")
+            or user.has_perm("pms.delete_objective")
+        ):
             self.action_method = "actions_col"
 
     selected_instances_key_id = "selectedInastacesAll"
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        employee = self.request.user.employee_get
+        user = getattr(self.request, "user", None)
+        employee = getattr(user, "employee_get", None) if user else None
         manager = False
-        if Objective.objects.filter(managers=employee).exists():
+        if employee and Objective.objects.filter(managers=employee).exists():
             manager = True
-        if self.request.user.has_perm("pms.view_employeeobjective"):
+        if user and user.has_perm("pms.view_employeeobjective"):
             queryset = queryset
         elif manager:
             queryset = queryset.filter(Q(managers=employee)) | queryset.filter(
@@ -193,7 +208,17 @@ class AllObjectives(ObjectivesList):
             )
         else:
             queryset = queryset.none()
-        return queryset.distinct()
+        return (
+            queryset.distinct()
+            .select_related("company_id")
+            .prefetch_related(
+                "managers",
+                "key_result_id",
+                "employee_objective",
+                "employee_objective__employee_id",
+                "employee_objective__employee_id__employee_user_id",
+            )
+        )
 
 
 @method_decorator(login_required, name="dispatch")

@@ -1,186 +1,254 @@
 # HRMS
 
-A production-oriented Human Resource Management System built with Django, PostgreSQL, Redis, Gunicorn, Nginx, and Docker Compose.
+A Docker-first **Human Resource Management System** built with Django, PostgreSQL, Redis, Gunicorn, and Nginx.
 
-## Features
+Repository: https://github.com/shawn-cse/hrms
+
+## Overview
+
+HRMS provides a centralized platform for common human-resource workflows, including employee records, recruitment, onboarding, attendance, leave, payroll, performance, assets, projects, helpdesk, offboarding, reporting, and related administrative tools.
+
+The recommended way to run this repository is with Docker Compose so that the application, PostgreSQL, and Redis use the same reproducible environment on Windows, Linux, and macOS.
+
+## Documentation & Operational Guides
+
+Complete system architecture and operational documentation is available in the [`docs/`](docs/) directory:
+
+- 🌐 **[Interactive HTML Documentation (Complete System Guide)](docs/HRMS_COMPLETE_SYSTEM_DOCUMENTATION.html)** — Modern, searchable, dark/light interactive web manual covering all 24 modules, data models, approval workflows, REST API catalog, and DevOps setup.
+- 📄 **[Complete System Markdown Documentation](docs/HRMS_COMPLETE_SYSTEM_DOCUMENTATION.md)** — Exhaustive 24-chapter technical specification and architectural blueprint.
+- 📑 **[Executive PDF Documentation](docs/HRMS_Complete_System_Documentation.pdf)** — Formatted printable executive report.
+
+### Default Login Credentials (Demo Environment)
+
+| Role | Username / Email | Password | Access Level |
+|---|---|---|---|
+| **System Administrator** | `admin` | `admin` | Full superuser access across all companies and modules |
+| **HR Manager** | `tanvir.rahman@example.com` | `admin` | HR lifecycle, employee profiles, department policies |
+| **Project Manager** | `shakib.khan@example.com` | `admin` | Projects, tasks, timesheet approvals |
+| **Standard Employee** | `afif.dutta@example.com` | `admin` | Employee self-service (Check-in/out, leave requests, payslips) |
+
+## Main Features
 
 - Employee management
+- Company, department, job-position, and work-information management
 - Recruitment and onboarding
 - Attendance and time tracking
 - Leave management
-- Payroll management
+- Payroll
 - Performance management
 - Asset management
-- Project management
+- Project and task management
 - Helpdesk
 - Offboarding
-- REST API
 - Reports and dashboards
 - Role and permission management
-- Audit logging
-- Backup and automation tools
+- REST API
+- Notifications and automation
+- Audit and backup utilities
 - LDAP integration
 - Document management
 - Theme support
-- Biometric, geofencing, face-detection, and meeting-related integrations
+- WhatsApp-related integration
+- Optional biometric, geofencing, face-detection, and meeting integrations
 
 ## Technology Stack
 
-- Python 3.12
-- Django 5.x
-- PostgreSQL 16
-- Redis 7
-- Gunicorn
-- Nginx
-- Docker
-- Docker Compose
+- **Backend:** Python 3.12, Django 5.x
+- **Database:** PostgreSQL 16
+- **Cache / messaging support:** Redis 7
+- **Application server:** Gunicorn
+- **Reverse proxy:** Nginx
+- **Containerization:** Docker + Docker Compose
+- **CI:** GitHub Actions
 
-## Project Identity
+## Project Structure
 
-- Application name: `HRMS`
-- Django project package: `hrms`
-- Default PostgreSQL database: `hrms_db`
-- Default PostgreSQL user: `hrms_user`
-- Default primary color: `#2563EB`
-- Default timezone template: `Asia/Dhaka`
+Important top-level areas include:
+
+```text
+hrms/                    Django project package
+employee/                Employee management
+attendance/              Attendance
+leave/                   Leave management
+payroll/                 Payroll
+recruitment/             Recruitment
+onboarding/              Onboarding
+offboarding/             Offboarding
+asset/                   Asset management
+project/                 Project management
+helpdesk/                Helpdesk
+pms/                     Performance management
+report/                  Reporting
+hrms_api/                API
+hrms_auth/               Authentication
+hrms_audit/              Audit functionality
+hrms_automations/        Automation functionality
+hrms_backup/             Backup functionality
+hrms_documents/          Document functionality
+hrms_ldap/               LDAP functionality
+hrms_theme/              Theme / branding
+whatsapp/                WhatsApp-related functionality
+static/                  Static assets
+templates/               Shared templates
+docker/                  Docker / Nginx support files
+.github/workflows/       GitHub Actions workflows
+```
 
 ## Requirements
 
-Recommended deployment method:
+### Recommended
 
-- Docker Engine
-- Docker Compose v2.24+
+- Git
+- Docker Desktop on Windows/macOS, or Docker Engine on Linux
+- Docker Compose v2
 
-For manual local development:
+> On Windows, Docker Desktop must be running in the background before starting the project.
 
-- Python 3.12
-- PostgreSQL
-- Redis
+## Quick Start
 
-## Quick Start with Docker
-
-From the project root:
+Clone the repository:
 
 ```bash
-docker compose up --build
+git clone https://github.com/shawn-cse/hrms.git
+cd hrms
 ```
 
-The application will be available at:
+Build and start the development stack:
 
-```text
-http://localhost:8000
+```bash
+docker compose up -d --build
 ```
 
-Check container status:
+Check service status:
 
 ```bash
 docker compose ps
 ```
 
-View application logs:
+Wait until the `db`, `redis`, and `web` services are running and the `web` service becomes healthy.
+
+Then open:
+
+```text
+http://127.0.0.1:8080
+```
+
+`127.0.0.1` is recommended on Windows because some systems resolve `localhost` to IPv6 (`::1`), which may not work with the local Docker port binding.
+
+## First-Time Setup
+
+On a fresh database, HRMS opens the database-initialization/setup flow.
+
+You can either:
+
+1. configure a new workspace/company manually, or
+2. load the demo database for testing.
+
+The initialization password comes from the `DB_INIT_PASSWORD` environment variable configured for the running environment.
+
+Do not expose or reuse the development initialization password in production.
+
+After initialization, create or use an administrator account and continue with:
+
+- Company
+- Department
+- Job Position
+- Employee
+- Work Information
+- Roles and permissions
+
+## Demo Data
+
+If you choose **Load Demo Database**, the setup process may take several minutes because it creates database records and assigns demo roles.
+
+Monitor the application if necessary:
 
 ```bash
 docker compose logs -f web
 ```
 
-Run the Django system check:
+Stop following logs with `Ctrl+C`. This does **not** stop the container.
+
+## Login
+
+Administrators and employees use the same HRMS authentication system.
+
+Open:
+
+```text
+http://127.0.0.1:8080
+```
+
+Employee credentials must correspond to an active user/employee record.
+
+For local testing, an administrator can reset a user's password from the container:
 
 ```bash
-docker compose exec web python manage.py check
+docker compose exec web python manage.py changepassword <username>
 ```
 
-Check migrations:
+Example:
 
 ```bash
-docker compose exec web python manage.py showmigrations
+docker compose exec web python manage.py changepassword user@example.com
 ```
 
-## Makefile Commands
+Do not document real employee passwords in this repository.
 
-The repository includes common development and deployment commands.
+## Start and Stop
+
+### Stop HRMS without deleting data
 
 ```bash
-make help
-make dev
-make build
-make status
-make logs
-make logs-web
-make shell
-make db-shell
-make restart
-make stop
+docker compose down
 ```
 
-`make clean` removes Docker volumes and permanently deletes the local Docker database and Redis data.
+### Start it again later
 
-## Production Configuration
-
-Create the production environment file:
+Make sure Docker is running, then:
 
 ```bash
-cp .env.dist .env
+docker compose up -d
 ```
 
-Edit `.env` before deployment.
+Open:
 
-At minimum, configure strong values for:
-
-```env
-SECRET_KEY=
-ALLOWED_HOSTS=
-CSRF_TRUSTED_ORIGINS=
-POSTGRES_PASSWORD=
-DATABASE_URL=
-DB_INIT_PASSWORD=
-REDIS_PASSWORD=
-REDIS_URL=
+```text
+http://127.0.0.1:8080
 ```
 
-Do not use the development passwords in production.
-
-Example production hostname configuration:
-
-```env
-ALLOWED_HOSTS=hrms.example.com
-CSRF_TRUSTED_ORIGINS=https://hrms.example.com
-```
-
-## Production Deployment
-
-Start the production stack:
+### Check status
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+docker compose ps
 ```
 
-Or use:
+## After Changing Code
+
+The development Compose configuration bind-mounts the project into the `web` container.
+
+For normal Python/template/static source changes, restart the web service:
 
 ```bash
-make prod
+docker compose restart web
 ```
 
-Check services:
+If you changed dependencies, the Dockerfile, system packages, or container startup configuration, rebuild:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml ps
+docker compose up -d --build
 ```
 
-Check application health:
+For a completely clean image rebuild:
 
 ```bash
-curl -f http://localhost:8000/health/
-```
-
-Check readiness:
-
-```bash
-curl -f http://localhost:8000/ready/
+docker compose build --no-cache web
+docker compose up -d
 ```
 
 ## Database
 
-The default Docker development database configuration is:
+The Docker development database uses:
 
 ```text
 Database: hrms_db
@@ -189,121 +257,223 @@ Host:     db
 Port:     5432
 ```
 
-For this HRMS distribution, initialize a fresh database when deploying the application for the first time.
+PostgreSQL data is stored in the named Docker volume:
 
-Do not connect an existing database that was created using different Django application labels or model namespaces unless a dedicated and tested schema/data migration has been prepared first.
-
-Open a PostgreSQL shell inside Docker:
-
-```bash
-make db-shell
+```text
+hrms-app_postgres_data
 ```
 
-## Django Management
+### Reset the Database
 
-Open the application container:
-
-```bash
-make shell
-```
-
-Common commands:
+**Warning: this permanently deletes all local PostgreSQL data for this HRMS Docker project.**
 
 ```bash
-python manage.py check
-python manage.py showmigrations
-python manage.py migrate
-python manage.py collectstatic --noinput
-python manage.py createsuperuser
+docker compose down && docker volume rm hrms-app_postgres_data && docker compose up -d
 ```
 
-## Testing and Validation
+After the new database is created, open:
 
-Run the Django validation checks:
+```text
+http://127.0.0.1:8080
+```
+
+The first-time setup flow should appear again.
+
+Do not use `docker compose down -v` unless you intentionally want to remove all Compose-managed named volumes, not only PostgreSQL data.
+
+## Useful Docker Commands
 
 ```bash
-python manage.py check
-python manage.py makemigrations --check --dry-run
+# Start
+docker compose up -d
+
+# Start and rebuild
+docker compose up -d --build
+
+# Status
+docker compose ps
+
+# Web logs
+docker compose logs --tail=200 web
+
+# Follow web logs
+docker compose logs -f web
+
+# Django checks
+docker compose exec web python manage.py check
+
+# Show migrations
+docker compose exec web python manage.py showmigrations
+
+# Apply migrations
+docker compose exec web python manage.py migrate
+
+# Create a superuser
+docker compose exec web python manage.py createsuperuser
+
+# Open Django shell
+docker compose exec web python manage.py shell
+
+# Stop without deleting data
+docker compose down
 ```
 
-Run the smoke test suite:
+## Health Checks
+
+The application exposes health endpoints used by Docker and CI.
+
+Inside the container, the web service listens on port `8000`.
+
+The development host mapping is:
+
+```text
+127.0.0.1:8080 -> container:8000
+```
+
+Check Docker status:
 
 ```bash
-make test-smoke
+docker compose ps
 ```
 
-Run unit tests:
+A healthy local stack should show the database, Redis, and web services running successfully.
+
+## Troubleshooting
+
+### `localhost refused to connect`
+
+Use:
+
+```text
+http://127.0.0.1:8080
+```
+
+Then verify:
 
 ```bash
-make test-unit
+docker compose ps
 ```
 
-Run coverage checks:
+### Web container is `health: starting`
+
+Wait for migrations, static-file collection, and Gunicorn startup to finish, then run:
 
 ```bash
-make test-cov
+docker compose ps
 ```
 
-When dependencies are installed only inside Docker, execute Django commands inside the `web` container.
+### Web container is unhealthy or restarting
 
-## Static and Media Files
+Inspect logs:
 
-Production static files are collected into the Docker `staticfiles` volume.
+```bash
+docker compose logs --tail=200 web
+```
 
-Media files are handled by the application and are not exposed directly through the Nginx static-file mapping.
+### Port 8080 is already in use
 
-## Branding
+Stop the process using the port or change the host side of the Compose port mapping.
 
-The default application branding is configured as:
+For example:
 
-- Product name: `HRMS`
-- Primary color: `#2563EB`
-- HRMS logos and favicons under the project static assets
+```yaml
+ports:
+  - "8081:8000"
+```
 
-Company-specific branding can be applied by replacing the HRMS logo/favicon assets and updating the configured theme values while preserving the expected filenames and paths used by templates.
+Then open:
 
-## Security Checklist
+```text
+http://127.0.0.1:8081
+```
+
+### Database volume cannot be removed
+
+A volume cannot be removed while a container is using it.
+
+Stop the stack first:
+
+```bash
+docker compose down
+```
+
+Then remove the PostgreSQL volume:
+
+```bash
+docker volume rm hrms-app_postgres_data
+```
+
+## Development Without Docker
+
+Docker is the supported and recommended setup for this repository.
+
+A native setup is possible, but you must install and configure Python 3.12, PostgreSQL, Redis, system libraries, environment variables, migrations, and static assets yourself. Because native dependencies vary by operating system, use Docker unless you specifically need a non-container development environment.
+
+## Production
+
+The development Compose configuration contains local-development settings and must not be used unchanged on a public server.
 
 Before production deployment:
 
-- Set `DEBUG=False`
-- Use a long random `SECRET_KEY`
-- Use strong PostgreSQL and Redis passwords
-- Configure the exact production hostname
-- Configure HTTPS
-- Keep `SECURE_SSL_REDIRECT=1` when HTTPS termination is correctly configured
-- Restrict database and Redis access to the internal Docker network
-- Back up PostgreSQL and uploaded media regularly
-- Review administrator accounts and permissions
-- Run `python manage.py check --deploy` in the production configuration
+- set `DEBUG=0`
+- use a strong unique `SECRET_KEY`
+- use strong PostgreSQL and Redis credentials
+- use a strong `DB_INIT_PASSWORD`
+- configure `ALLOWED_HOSTS`
+- configure `CSRF_TRUSTED_ORIGINS`
+- use HTTPS
+- protect database and media backups
+- do not commit `.env` or real secrets
+- review reverse-proxy and firewall configuration
+- run migrations and health checks before routing production traffic
 
-## Backup
+If the repository includes `docker-compose.prod.yml`, create a production `.env` based on the provided environment template and run the production overlay only after all secrets and hostnames have been configured.
 
-Example PostgreSQL backup:
+## Tests and CI
+
+The repository contains GitHub Actions workflows for automated quality, unit/smoke, and Docker checks.
+
+Useful local checks include:
 
 ```bash
-docker compose exec -T db pg_dump -U hrms_user hrms_db > hrms_backup.sql
+docker compose exec web python manage.py check
+docker compose exec web python manage.py makemigrations --check --dry-run
 ```
 
-Example restore into a fresh database:
+Run the test suite appropriate to the change before opening a pull request.
 
-```bash
-cat hrms_backup.sql | docker compose exec -T db psql -U hrms_user -d hrms_db
-```
+A failing GitHub Actions check does not prevent Git from cloning the repository, but CI failures should be investigated before treating a release as verified.
 
-Test backup and restore procedures before relying on them in production.
+## Security
 
-## Useful Paths
+Never commit:
+
+- `.env`
+- passwords
+- API tokens
+- private keys
+- database dumps containing personal data
+- production secrets
+- employee personal data exported from a live system
+
+See [SECURITY.md](SECURITY.md) for vulnerability-reporting and deployment guidance.
+
+## Contributing
+
+Contributions should follow [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+
+## Branding
+
+Current project identity:
 
 ```text
-manage.py                  Django management entry point
-hrms/                      Main Django project package
-docker-compose.yml         Development/default Docker stack
-docker-compose.prod.yml    Production Docker overlay
-.env.dist                  Environment configuration template
-Dockerfile                 Application container definition
-docker/                    Docker and Nginx configuration
-static/                    Static assets
-templates/                 Shared templates
-media/                     Application-uploaded media when used locally
+Product name: HRMS
+Django package: hrms
+Primary color: #2563EB
 ```
+
+## Licensing and Attribution
+
+This repository is derived from open-source software. Before redistribution or production use, review and comply with all applicable upstream licensing, copyright, attribution, and source-distribution obligations.
+
+Removing a license or notice file from a working tree does not by itself remove obligations that apply to code obtained under an open-source license.

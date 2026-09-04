@@ -183,4 +183,95 @@ def sanitize_loaded_records() -> dict[str, int]:
             pass
         counts["pms"] = n
 
+    # Employee & Candidate Bangladeshi phone and address standardization
+    BD_ADDRESS_POOL = (
+        ("House 12, Road 5, Dhanmondi", "Dhaka", "Dhaka", "1205"),
+        ("Plot 24, Block D, Road 11, Banani", "Dhaka", "Dhaka", "1213"),
+        ("House 45, Road 27, Gulshan-1", "Dhaka", "Dhaka", "1212"),
+        ("House 8, Road 13, Sector 4, Uttara", "Dhaka", "Dhaka", "1230"),
+        ("Holding 18, Road 2, Block B, Mirpur-10", "Dhaka", "Dhaka", "1216"),
+        ("House 32, Road 3, Block C, Bashundhara R/A", "Dhaka", "Dhaka", "1229"),
+        ("Level 6, 42 Dilkusha C/A, Motijheel", "Dhaka", "Dhaka", "1000"),
+        ("Avenue 4, Road 7, Mirpur DOHS", "Dhaka", "Dhaka", "1216"),
+        ("House 15, Road 1, Block A, Niketan, Gulshan-2", "Dhaka", "Dhaka", "1212"),
+        ("House 22, Road 4, Sector 7, Uttara", "Dhaka", "Dhaka", "1230"),
+        ("Plot 7, Main Road, Mohakhali C/A", "Dhaka", "Dhaka", "1212"),
+        ("House 9, Road 8, Dhanmondi R/A", "Dhaka", "Dhaka", "1209"),
+        ("Holding 54, Kazi Nazrul Islam Avenue, Kawran Bazar", "Dhaka", "Dhaka", "1215"),
+        ("House 16, Road 6, Baridhara DOHS", "Dhaka", "Dhaka", "1206"),
+        ("Plot 11, Road 2, Block F, Lalmatia", "Dhaka", "Dhaka", "1207"),
+        ("House 28, Road 10, Sector 11, Uttara", "Dhaka", "Dhaka", "1230"),
+        ("Flat 4B, 15 Panthapath", "Dhaka", "Dhaka", "1205"),
+        ("House 7, Road 14, Block G, Banasree", "Dhaka", "Dhaka", "1219"),
+        ("Holding 33, Boro Moghbazar", "Dhaka", "Dhaka", "1217"),
+        ("House 19, Road 5, Block C, Khilgaon", "Dhaka", "Dhaka", "1219"),
+        ("72 Agrabad Commercial Area", "Chattogram", "Chattogram", "4100"),
+        ("House 14, Road 3, Nasirabad Housing Society", "Chattogram", "Chattogram", "4203"),
+        ("Holding 88, GEC Circle, O.R. Nizam Road", "Chattogram", "Chattogram", "4000"),
+        ("Plot 5, Block B, Chandgaon R/A", "Chattogram", "Chattogram", "4212"),
+        ("House 21, Road 2, Panchlaish R/A", "Chattogram", "Chattogram", "4203"),
+        ("Holding 45, Main Road, Zindabazar", "Sylhet", "Sylhet", "3100"),
+        ("House 11, Road 4, Shahjalal Upashahar", "Sylhet", "Sylhet", "3100"),
+        ("Holding 12, Station Road, Kumarpara", "Sylhet", "Sylhet", "3100"),
+        ("Holding 34, Greater Road, Shaheb Bazar", "Rajshahi", "Rajshahi", "6000"),
+        ("House 18, Road 1, Upashahar", "Rajshahi", "Rajshahi", "6202"),
+        ("Holding 56, KDA Avenue, Shib Bari Mor", "Khulna", "Khulna", "9100"),
+        ("House 25, Road 6, Sonadanga R/A", "Khulna", "Khulna", "9000"),
+        ("Holding 82, Dhaka-Mymensingh Road, Board Bazar", "Gazipur", "Dhaka", "1704"),
+        ("Plot 14, Sector 2, Joydebpur", "Gazipur", "Dhaka", "1700"),
+        ("Holding 29, B.B. Road, Chasara", "Narayanganj", "Dhaka", "1400"),
+    )
+    PHONE_BD = "+8801700000000"
+
+    if apps.is_installed("employee"):
+        from employee.models import Employee
+
+        n_emp = 0
+        for idx, emp in enumerate(Employee._base_manager.all().order_by("id")):
+            addr, city, state, zip_code = BD_ADDRESS_POOL[idx % len(BD_ADDRESS_POOL)]
+            changed = False
+            if emp.phone != PHONE_BD:
+                emp.phone = PHONE_BD
+                changed = True
+            if emp.country != "Bangladesh":
+                emp.country = "Bangladesh"
+                changed = True
+            if not emp.address or emp.country != "Bangladesh":
+                emp.address = addr
+                emp.city = city
+                emp.state = state
+                emp.zip = zip_code
+                changed = True
+            if emp.emergency_contact and not emp.emergency_contact.startswith("+880"):
+                emp.emergency_contact = PHONE_BD
+                changed = True
+            if changed:
+                emp.save(update_fields=["phone", "country", "address", "city", "state", "zip", "emergency_contact"])
+                n_emp += 1
+        counts["employees"] = n_emp
+
+    if apps.is_installed("recruitment"):
+        from recruitment.models import Candidate
+
+        n_cand = 0
+        for idx, cand in enumerate(Candidate.objects.all().order_by("id")):
+            addr, city, state, zip_code = BD_ADDRESS_POOL[idx % len(BD_ADDRESS_POOL)]
+            changed = False
+            if cand.mobile != PHONE_BD:
+                cand.mobile = PHONE_BD
+                changed = True
+            if cand.country != "Bangladesh":
+                cand.country = "Bangladesh"
+                changed = True
+            if not cand.address or cand.country != "Bangladesh":
+                cand.address = addr
+                cand.city = city
+                cand.state = state
+                cand.zip = zip_code
+                changed = True
+            if changed:
+                cand.save(update_fields=["mobile", "country", "address", "city", "state", "zip"])
+                n_cand += 1
+        counts["candidates"] = n_cand
+
     return counts

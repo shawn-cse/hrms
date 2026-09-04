@@ -8,11 +8,6 @@ ACCESSIBILITY = "report.sidebar.menu_accessibility"
 
 SUBMENUS = [
     {
-        "menu": _("Standard Reports"),
-        "redirect": reverse_lazy("standard-report-catalog"),
-        "accessibility": "report.sidebar.standard_accessibility",
-    },
-    {
         "menu": _("Explorer"),
         "redirect": reverse_lazy("report-explorer"),
         "accessibility": "report.sidebar.standard_accessibility",

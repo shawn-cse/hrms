@@ -1,0 +1,2964 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS Enterprise — Complete System Documentation & Architecture</title>
+    <meta name="description" content="Complete enterprise documentation for HRMS (Human Resource Management System). Covers architecture, multi-tenancy, employee lifecycle, attendance, payroll, PMS, REST APIs, and Docker deployment.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            
+            /* Dark Theme (Default) */
+            --bg-body: #0a0e17;
+            --bg-navbar: rgba(15, 23, 42, 0.85);
+            --bg-sidebar: #0f172a;
+            --bg-card: #131d33;
+            --bg-card-hover: #192644;
+            --bg-code: #060911;
+            --border-color: #1e293b;
+            --border-light: #283548;
+            
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --primary-glow: rgba(99, 102, 241, 0.25);
+            --accent-cyan: #06b6d4;
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            
+            --table-header: #1e293b;
+            --table-row-alt: rgba(30, 41, 59, 0.35);
+            --sidebar-width: 320px;
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f8fafc;
+            --bg-navbar: rgba(255, 255, 255, 0.88);
+            --bg-sidebar: #ffffff;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f1f5f9;
+            --bg-code: #f1f5f9;
+            --border-color: #e2e8f0;
+            --border-light: #cbd5e1;
+            
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --text-dim: #94a3b8;
+            
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-glow: rgba(79, 70, 229, 0.15);
+            
+            --table-header: #f1f5f9;
+            --table-row-alt: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 80px;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.65;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Scroll Progress Bar */
+        #scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent-cyan));
+            width: 0%;
+            z-index: 9999;
+            transition: width 0.1s;
+        }
+
+        /* Header / Navbar */
+        .top-navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: var(--bg-navbar);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 1000;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-main);
+        }
+
+        .brand-logo {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--primary), var(--accent-cyan));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            font-family: var(--font-heading);
+            font-size: 1.1rem;
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .brand-title {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            font-size: 1.25rem;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-badge {
+            font-size: 0.75rem;
+            background: var(--primary-glow);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-weight: 600;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-icon {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-icon:hover {
+            color: var(--text-main);
+            border-color: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+        }
+
+        /* App Layout */
+        .app-layout {
+            display: flex;
+            margin-top: 64px;
+            min-height: calc(100vh - 64px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            height: calc(100vh - 64px);
+            position: fixed;
+            top: 64px;
+            left: 0;
+            overflow-y: auto;
+            padding: 20px 16px;
+            z-index: 900;
+        }
+
+        .sidebar-search {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .sidebar-search input {
+            width: 100%;
+            padding: 10px 14px 10px 36px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 0.875rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-search input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .sidebar-search i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-dim);
+            font-size: 0.875rem;
+        }
+
+        .nav-group {
+            margin-bottom: 24px;
+        }
+
+        .nav-group-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-dim);
+            font-weight: 700;
+            padding: 6px 12px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-links {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 2px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            background: var(--bg-card);
+            color: var(--text-main);
+        }
+
+        .nav-link.active {
+            background: var(--primary);
+            color: #ffffff;
+            font-weight: 600;
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .chapter-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            background: var(--border-color);
+            font-size: 0.725rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .nav-link.active .chapter-num {
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+        }
+
+        .chapter-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 40px 48px 120px 48px;
+            max-width: 1200px;
+        }
+
+        /* Hero Banner */
+        .docs-hero {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(6, 182, 212, 0.08));
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 48px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .docs-hero:before {
+            content: '';
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-title {
+            font-family: var(--font-heading);
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.03em;
+            margin-bottom: 12px;
+            line-height: 1.2;
+        }
+
+        .hero-desc {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            max-width: 760px;
+            margin-bottom: 28px;
+        }
+
+        .hero-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 16px 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .metric-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: var(--primary-glow);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .metric-val {
+            font-family: var(--font-heading);
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1.1;
+        }
+
+        .metric-lbl {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        /* Chapter Section */
+        .chapter-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            transition: border-color 0.2s ease;
+        }
+
+        .chapter-section:hover {
+            border-color: var(--border-light);
+        }
+
+        .chapter-header {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 24px;
+            margin-bottom: 32px;
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: var(--primary-glow);
+            color: var(--primary);
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            margin-bottom: 12px;
+            border: 1px solid var(--primary);
+        }
+
+        .chapter-title {
+            font-family: var(--font-heading);
+            font-size: 1.85rem;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+
+        .chapter-subtitle {
+            font-size: 1rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Markdown Rendered Typography */
+        .chapter-body h2 {
+            font-family: var(--font-heading);
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 32px 0 16px 0;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .chapter-body h3 {
+            font-family: var(--font-heading);
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin: 24px 0 12px 0;
+        }
+
+        .chapter-body h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin: 16px 0 8px 0;
+        }
+
+        .chapter-body p {
+            margin-bottom: 16px;
+            color: var(--text-main);
+        }
+
+        .chapter-body ul, .chapter-body ol {
+            margin-bottom: 16px;
+            padding-left: 24px;
+        }
+
+        .chapter-body li {
+            margin-bottom: 6px;
+        }
+
+        .chapter-body strong {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .chapter-body a {
+            color: var(--primary);
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        .chapter-body a:hover {
+            color: var(--primary-hover);
+        }
+
+        .chapter-body hr {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 32px 0;
+        }
+
+        /* Tables */
+        .chapter-body table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 20px 0 28px 0;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+            font-size: 0.875rem;
+        }
+
+        .chapter-body th {
+            background: var(--table-header);
+            color: var(--text-main);
+            font-weight: 600;
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .chapter-body td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+            vertical-align: top;
+        }
+
+        .chapter-body tr:last-child td {
+            border-bottom: none;
+        }
+
+        .chapter-body tr:nth-child(even) {
+            background-color: var(--table-row-alt);
+        }
+
+        /* Code Blocks & Inline Code */
+        .chapter-body code {
+            font-family: var(--font-mono);
+            font-size: 0.85em;
+            background: var(--bg-code);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            color: var(--accent-cyan);
+        }
+
+        .chapter-body pre {
+            position: relative;
+            background: var(--bg-code);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        .chapter-body pre code {
+            background: transparent;
+            border: none;
+            padding: 0;
+            color: #e2e8f0;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: var(--font-sans);
+        }
+
+        .copy-btn:hover {
+            color: var(--text-main);
+            border-color: var(--primary);
+        }
+
+        /* Chapter Footer */
+        .chapter-footer {
+            margin-top: 32px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .back-to-top-btn {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: color 0.2s ease;
+        }
+
+        .back-to-top-btn:hover {
+            color: var(--primary);
+        }
+
+        .chapter-footer-id {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            font-weight: 500;
+        }
+
+        /* Responsive Mobile Styles */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 24px 20px 80px 20px;
+            }
+            .mobile-menu-toggle {
+                display: flex;
+            }
+            .hero-title {
+                font-size: 1.85rem;
+            }
+        }
+
+        /* Print Optimization */
+        @media print {
+            .top-navbar, .sidebar, #scroll-progress, .btn-icon, .copy-btn, .back-to-top-btn {
+                display: none !important;
+            }
+            .app-layout {
+                margin-top: 0 !important;
+            }
+            .main-content {
+                margin-left: 0 !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+            }
+            .chapter-section {
+                border: none !important;
+                background: transparent !important;
+                padding: 0 !important;
+                page-break-after: always;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+            }
+        }
+    </style>
+</head>
+<body id="top">
+    <div id="scroll-progress"></div>
+
+    <!-- Top Navigation -->
+    <header class="top-navbar">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <button class="btn-icon mobile-menu-toggle" id="mobile-toggle" aria-label="Toggle navigation menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <a href="#" class="brand-container">
+                <div class="brand-logo">H</div>
+                <div class="brand-title">HRMS Enterprise</div>
+                <span class="brand-badge">v2.0</span>
+            </a>
+        </div>
+        <div class="nav-actions">
+            <button class="btn-icon" id="theme-toggle" title="Toggle Dark / Light Theme" aria-label="Toggle theme">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+            <button class="btn-icon" onclick="window.print()" title="Print Documentation" aria-label="Print documentation">
+                <i class="fa-solid fa-print"></i>
+            </button>
+            <a href="https://github.com/shawn-cse/hrms" target="_blank" class="btn-icon" title="GitHub Repository" aria-label="GitHub Repository">
+                <i class="fa-brands fa-github"></i>
+            </a>
+            <a href="HRMS_COMPLETE_SYSTEM_DOCUMENTATION.md" download class="btn-primary">
+                <i class="fa-solid fa-file-arrow-down"></i>
+                <span>Download Markdown</span>
+            </a>
+        </div>
+    </header>
+
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="chapter-search" placeholder="Search chapters & topics..." aria-label="Search documentation chapters">
+            </div>
+            <nav id="sidebar-nav">
+                
+    <div class="nav-group">
+        <div class="nav-group-title">
+            <i class="fa-solid fa-cubes me-2"></i>Foundations & Architecture
+        </div>
+        <ul class="nav-links">
+    
+
+            <li class="nav-item">
+                <a href="#chapter-1-system-overview" class="nav-link" data-chapter="1">
+                    <span class="chapter-num">1</span>
+                    <span class="chapter-text">System Overview & Architectural Blueprint</span>
+                </a>
+            </li>
+            
+
+            <li class="nav-item">
+                <a href="#chapter-2-base-core-foundation" class="nav-link" data-chapter="2">
+                    <span class="chapter-num">2</span>
+                    <span class="chapter-text">Core Architecture, Multi-Tenancy & Base Configuration</span>
+                </a>
+            </li>
+            
+
+        </ul>
+    </div>
+    
+
+    <div class="nav-group">
+        <div class="nav-group-title">
+            <i class="fa-solid fa-users me-2"></i>Workforce & Talent Lifecycle
+        </div>
+        <ul class="nav-links">
+    
+
+            <li class="nav-item">
+                <a href="#chapter-3-employee-lifecycle" class="nav-link" data-chapter="3">
+                    <span class="chapter-num">3</span>
+                    <span class="chapter-text">Employee Profile & Lifecycle Management</span>
+                </a>
+            </li>
+            
+
+            <li class="nav-item">
+                <a href="#chapter-10-recruitment-ats" class="nav-link" data-chapter="10">
+                    <span class="chapter-num">10</span>
+                    <span class="chapter-text">Recruitment & Applicant Tracking System</span>
+                </a>
+            </li>
+            
+
+            <li class="nav-item">
+                <a href="#chapter-11-onboarding-module" class="nav-link" data-chapter="11">
+                    <span class="chapter-num">11</span>
+                    <span class="chapter-text">Employee Onboarding Management</span>
+                </a>
+            </li>
+            
+
+            <li class="nav-item">
+                <a href="#chapter-12-offboarding-exit" class="nav-link" data-chapter="12">
+                    <span class="chapter-num">12</span>
+                    <span class="chapter-text">Employee Offboarding & Exit Clearance</span>
+                </a>
+            </li>
+            
+
+        </ul>
+    </div>
+    
+
+    <div class="nav-group">
+        <div class="nav-group-title">
+            <i class="fa-solid fa-clock me-2"></i>Attendance & Time Tracking
+        </div>
+        <ul class="nav-links">
+    
+
+            <li class="nav-item">
+                <a href="#chapter-4-attendance-engine" class="nav-link" data-chapter="4">
+                    <span class="chapter-num">4</span>
+                    <span class="chapter-text">Attendance & Time Tracking Engine</span>
+                </a>
+            </li>
+            
+
+            <li class="nav-item">
+                <a href="#chapter-5-biometric-face-geofence" class="nav-link" data-chapter="5">
+                    <span class="chapter-num">5</span>
+                    <span class="chapter-text">Biometric Devices, Facial Recognition & Geofencing (, , )</span>
+                </a>
+            </li>
+            
+
+        </ul>
+    </div>
+    
+
+    <div class="nav-group">
+        <div class="nav-group-title">
+            <i class="fa-solid fa-money-bill-wave me-2"></i>Leave & Compensation
+        </div>
+        <ul class="nav-links">
+    
+
+            <li class="nav-item">
+                <a href="#chapter-6-leave-management" class="nav-link" data-chapter="6">
+                    <span class="chapter-num">6</span>
+                    <span class="chapter-text">Leave & Absence Management</span>
+                </a>
+            </li>
+            
+
+            <li class="nav-item">
+                <a href="#chapter-7-payroll-compensation" class="nav-link" data-chapter="7">
+                    <span class="chapter-num">7</span>
+                    <span class="chapter-text">Payroll, Compensation & Benefits Administration</span>
+                </a>
+            </li>
+            
+
+        </ul>
+    </div>
+    
+
+    <div class="nav-group">
+        <div class="nav-group-title">
+            <i class="fa-solid fa-chart-line me-2"></i>Performance, Projects & Assets
+        </div>
+        <ul class="nav-links">
+    
+
+            <li class="nav-item">
+                <a href="#chapter-8-performance-pms" class="nav-link" data-chapter="8">
+                    <span class="chapter-num">8</span>
+                    <span class="chapter-text">Performance Management System</span>
+                </a>
+            </li>
+            
+
+            <li class="nav-item">
+                <a href="#chapter-9-asset-management" class="nav-link" data-chapter="9">
+                    <span class="chapter-num">9</span>
+                    <span class="chapter-text">Asset & Equipment Lifecycle Management</span>
+                </a>
+            </li>
+            
+
+            <li class="nav-item">
+                <a href="#chapter-13-project-timesheets" class="nav-link" data-chapter="13">
+                    <span class="chapter-num">13</span>
+                    <span class="chapter-text">Project Management & Timesheets</span>
+                </a>
+            </li>
+            
+
+            <li class="nav-item">
+                <a href="#chapter-14-helpdesk-ticketing" class="nav-link" data-chapter="14">
+                    <span class="chapter-num">14</span>
+                    <span class="chapter-text">Helpdesk & Internal Support Ticketing</span>
+                </a>
+            </li>
+            
+
+        </ul>
+    </div>
+    
+
+    <div class="nav-group">
+        <div class="nav-group-title">
+            <i class="fa-solid fa-database me-2"></i>Reporting, BI & REST APIs
+        </div>
+        <ul class="nav-links">
+    
+
+            <li class="nav-item">
+                <a href="#chapter-15-reporting-bi" class="nav-link" data-chapter="15">
+                    <span class="chapter-num">15</span>
+                    <span class="chapter-text">Reporting & Business Intelligence Engine</span>
+                </a>
+            </li>
+            
+
+            <li class="nav-item">
+                <a href="#chapter-16-rest-api-swagger" class="nav-link" data-chapter="16">
+                    <span class="chapter-num">16</span>
+                    <span class="chapter-text">RESTful API Architecture & Interactive Swagger UI</span>
+                </a>
+            </li>
+            
+
+        </ul>
+    </div>
+    
+
+    <div class="nav-group">
+        <div class="nav-group-title">
+            <i class="fa-solid fa-shield-halved me-2"></i>Security, Governance & Admin
+        </div>
+        <ul class="nav-links">
+    
+
+            <li class="nav-item">
+                <a href="#chapter-17-auth-security-permissions" class="nav-link" data-chapter="17">
+                    <span class="chapter-num">17</span>
+                    <span class="chapter-text">Enterprise Authentication, RBAC & Security (, )</span>
+                </a>
+            </li>
+            
+
+            <li class="nav-item">
+                <a href="#chapter-18-audit-compliance" class="nav-link" data-chapter="18">
+                    <span class="chapter-num">18</span>
+                    <span class="chapter-text">Audit Trails & Regulatory Compliance</span>
+                </a>
+            </li>
+            
+
+            <li class="nav-item">
+                <a href="#chapter-19-automations-notifications" class="nav-link" data-chapter="19">
+                    <span class="chapter-num">19</span>
+                    <span class="chapter-text">Automations, Notifications & Scheduled Tasks (, )</span>
+                </a>
+            </li>
+            
+
+            <li class="nav-item">
+                <a href="#chapter-20-documents-templates" class="nav-link" data-chapter="20">
+                    <span class="chapter-num">20</span>
+                    <span class="chapter-text">Document Generation & Database Templates (, )</span>
+                </a>
+            </li>
+            
+
+            <li class="nav-item">
+                <a href="#chapter-21-backup-disaster-recovery" class="nav-link" data-chapter="21">
+                    <span class="chapter-num">21</span>
+                    <span class="chapter-text">Database Backup & Disaster Recovery (, )</span>
+                </a>
+            </li>
+            
+
+        </ul>
+    </div>
+    
+
+    <div class="nav-group">
+        <div class="nav-group-title">
+            <i class="fa-solid fa-server me-2"></i>Integrations, UX & DevOps
+        </div>
+        <ul class="nav-links">
+    
+
+            <li class="nav-item">
+                <a href="#chapter-22-external-integrations" class="nav-link" data-chapter="22">
+                    <span class="chapter-num">22</span>
+                    <span class="chapter-text">External Enterprise Integrations (WhatsApp, LDAP, Outlook, Meet)</span>
+                </a>
+            </li>
+            
+
+            <li class="nav-item">
+                <a href="#chapter-23-ui-ux-accessibility" class="nav-link" data-chapter="23">
+                    <span class="chapter-num">23</span>
+                    <span class="chapter-text">UI/UX, Dynamic Themes, Guided Tours & Accessibility</span>
+                </a>
+            </li>
+            
+
+            <li class="nav-item">
+                <a href="#chapter-24-devops-deployment" class="nav-link" data-chapter="24">
+                    <span class="chapter-num">24</span>
+                    <span class="chapter-text">DevOps, Containerization & Production Deployment</span>
+                </a>
+            </li>
+            
+
+        </ul>
+    </div>
+    
+            </nav>
+        </aside>
+
+        <!-- Main Documentation Content -->
+        <main class="main-content">
+            <!-- Hero Banner -->
+            <div class="docs-hero">
+                <h1 class="hero-title">HRMS System Architecture & Documentation</h1>
+                <p class="hero-desc">
+                    Comprehensive enterprise operational guide, data models, approval workflows, REST API catalog, security specifications, and DevOps container manual.
+                </p>
+                <div class="hero-metrics">
+                    <div class="metric-card">
+                        <div class="metric-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+                        <div>
+                            <div class="metric-val">24</div>
+                            <div class="metric-lbl">Domain Modules</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon"><i class="fa-solid fa-database"></i></div>
+                        <div>
+                            <div class="metric-val">120+</div>
+                            <div class="metric-lbl">Database Models</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon"><i class="fa-solid fa-network-wired"></i></div>
+                        <div>
+                            <div class="metric-val">300+</div>
+                            <div class="metric-lbl">REST API Endpoints</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon"><i class="fa-brands fa-docker"></i></div>
+                        <div>
+                            <div class="metric-val">100%</div>
+                            <div class="metric-lbl">Docker-First Stack</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chapters -->
+            <div id="chapters-container">
+                
+    <section class="chapter-section" id="chapter-1-system-overview">
+        <div class="chapter-header">
+            <div class="chapter-badge">Chapter 01</div>
+            <h2 class="chapter-title">System Overview & Architectural Blueprint</h2>
+            <p class="chapter-subtitle">High-level architecture, technology stack, directory structure, and modular design patterns.</p>
+        </div>
+        <div class="chapter-body">
+            <h2 id="11-executive-summary">1.1 Executive Summary</h2>
+<p>HRMS is an enterprise-grade, Docker-first Human Resource Management System built on Python 3.12, Django 5.x, PostgreSQL 16, Redis 7, Gunicorn, and Nginx. The system provides an end-to-end digital workplace platform governing every stage of the human capital lifecycle—from talent requisition, applicant tracking, and onboarding, to daily attendance, biometric synchronization, multi-tier leave workflows, automated payroll execution, performance appraisals (PMS), asset custody, project task tracking, internal helpdesk support, dynamic document generation, and formal offboarding clearance.</p>
+<p>Designed around principles of modularity, data security, and multi-tenant organizational hierarchy, HRMS features fine-grained Role-Based Access Control (RBAC), multi-company isolation, two-factor authentication (2FA), continuous audit logging, event-driven email automations, scheduled background tasks, and a full-featured REST API with interactive Swagger/OpenAPI documentation.</p>
+<hr>
+<h2 id="12-technology-stack">1.2 Technology Stack</h2>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Technology</th>
+<th>Version</th>
+<th>Key Responsibilities</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Core Framework</strong></td>
+<td>Django / Python</td>
+<td>5.x / 3.12+</td>
+<td>Web application framework, ORM, security middleware, authentication</td>
+</tr>
+<tr>
+<td><strong>Primary Database</strong></td>
+<td>PostgreSQL</td>
+<td>16.x</td>
+<td>Relational database, ACID transactions, relational integrity, JSONB fields</td>
+</tr>
+<tr>
+<td><strong>Cache &amp; In-Memory</strong></td>
+<td>Redis</td>
+<td>7.x</td>
+<td>Session caching, application state, rate-limiting, message broker</td>
+</tr>
+<tr>
+<td><strong>Application Server</strong></td>
+<td>Gunicorn</td>
+<td>21.x+</td>
+<td>Production WSGI HTTP server with multi-worker concurrent request execution</td>
+</tr>
+<tr>
+<td><strong>Reverse Proxy / SSL</strong></td>
+<td>Nginx</td>
+<td>Stable / Alpine</td>
+<td>Reverse proxy, static asset caching, SSL/TLS termination, request buffering</td>
+</tr>
+<tr>
+<td><strong>Background Scheduler</strong></td>
+<td>Django APScheduler</td>
+<td>0.3.0+</td>
+<td>Cron tasks, automated payroll runs, daily attendance summaries, email queues</td>
+</tr>
+<tr>
+<td><strong>REST API Engine</strong></td>
+<td>Django REST Framework (DRF)</td>
+<td>3.14+</td>
+<td>RESTful API endpoints, SimpleJWT authentication, Swagger UI (<code>drf_yasg</code>)</td>
+</tr>
+<tr>
+<td><strong>Audit &amp; History</strong></td>
+<td>Django Auditlog / Simple History</td>
+<td>Current</td>
+<td>Comprehensive changelog tracking, user action audits, field-level diffs</td>
+</tr>
+<tr>
+<td><strong>Containerization</strong></td>
+<td>Docker &amp; Docker Compose</td>
+<td>v2+</td>
+<td>Multi-stage container builds, reproducible development and production stacks</td>
+</tr>
+<tr>
+<td><strong>Continuous Integration</strong></td>
+<td>GitHub Actions</td>
+<td>Standard</td>
+<td>Automated linting, test validation, security checks, Docker packaging</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="13-architectural-design-patterns">1.3 Architectural Design Patterns</h2>
+<h3 id="1-pluggable-dynamic-app-discovery">1. Pluggable Dynamic App Discovery</h3>
+<p>HRMS implements a modular, pluggable application architecture. Rather than hardcoding dozens of URL includes inside the central <code>hrms/urls.py</code>, individual domain apps register their own routing and metadata dynamically via the Django <code>AppConfig.ready()</code> lifecycle hook:</p>
+<pre><code class="language-python"># Example from leave/apps.py
+class LeaveConfig(AppConfig):
+    name = &quot;leave&quot;
+
+    def ready(self):
+        from django.urls import include, path
+        from hrms.urls import urlpatterns
+
+        settings.APPS.append(&quot;leave&quot;)
+        urlpatterns.append(
+            path(&quot;leave/&quot;, include(&quot;leave.urls&quot;)),
+        )
+        super().ready()
+</code></pre>
+<p>This pattern ensures that modules can be cleanly activated, deactivated, or decoupled for white-label or customer-specific deployments without modifying the core project engine.</p>
+<h3 id="2-multi-company-organizational-hierarchy">2. Multi-Company Organizational Hierarchy</h3>
+<p>At the foundation of the data architecture lies the <code>base.Company</code> model. Organizational components (Departments, Job Positions, Work Types, Shifts, and Policies) and operational records (Employees, Attendances, Leave Requests, and Payslips) are mapped either directly or transitively to a Company entity. Custom middleware (<code>base.middleware.CompanyMiddleware</code>) resolves the active company context from the user's session or request headers, ensuring strict data isolation across multi-entity corporations.</p>
+<h3 id="3-unified-request-and-approve-engine">3. Unified Request-and-Approve Engine</h3>
+<p>Workflows requiring managerial oversight—including Leave Requests, Attendance Regularizations, Shift Changes, Work Type Modifications, Reimbursements, and Asset Requests—route through a standardized <code>MultipleApprovalCondition</code> engine. Organizations can construct complex approval hierarchies (e.g., Immediate Supervisor -&gt; Department Head -&gt; HR Manager -&gt; Finance Director) with custom conditions based on duration, expense value, or organizational rank.</p>
+<hr>
+<h2 id="14-directory-layout">1.4 Directory Layout</h2>
+<p>The repository is structured into modular domain packages, operational directories, and container configurations:</p>
+<pre><code class="language-text">d:\2026__LO\Coding\hrms\
+├── hrms/                 # Core Django project configuration, settings, base URLs, WSGI/ASGI
+├── base/                 # Master organizational hierarchy, shifts, work types, companies, ESS
+├── employee/             # Employee profiles, bank info, emergency contacts, policies, notes
+├── attendance/           # Clock in/out, late/early calculation, overtime, work records
+├── biometric/            # Hardware integration (ZKTeco, Matrix COSEC, biometric devices)
+├── facedetection/        # Facial recognition attendance capture and verification
+├── geofencing/           # GPS location geofencing boundaries and perimeter validation
+├── leave/                # Leave types, accrual rules, requests, multi-tier approvals, holidays
+├── payroll/              # Salary contracts, allowances, deductions, tax slabs, batch payslips
+├── pms/                  # Performance Management System: OKRs, KPIs, 360 feedback, reviews
+├── asset/                # Hardware/software inventory, asset allocation, return condition photos
+├── recruitment/          # Requisitions, pipeline stages, resume parsing, interview scoring
+├── onboarding/           # Pre-boarding portal, document collection, departmental checklists
+├── offboarding/          # Resignations, clearance workflows (IT, HR, Finance), exit interviews
+├── project/              # Projects, milestones, Kanban task boards, billable timesheets
+├── helpdesk/             # Internal support ticketing, category routing, SLA tracking, FAQs
+├── report/               # BI reporting engine, custom filters, scheduled exports (CSV/Excel/PDF)
+├── hrms_api/             # RESTful APIs, SimpleJWT auth, Swagger OpenAPI documentation
+├── hrms_auth/            # Custom HRMSUser model, authentication backends, permission groups
+├── hrms_audit/           # Audit trail logging, field diff tracking, account lock/unlock history
+├── hrms_automations/     # Event triggers, scheduled cron jobs, automated mail actions
+├── notifications/        # In-app notification drawer, broadcast announcements, email dispatches
+├── hrms_documents/       # Dynamic document generation, certificate requests, PDF outputs
+├── hrms_dbtemplate/      # Database-driven rich text templates with dynamic merge tags
+├── hrms_backup/          # PostgreSQL automated backups, local archives, Google Drive sync
+├── hrms_ldap/            # Enterprise Active Directory / OpenLDAP directory synchronization
+├── hrms_meet/            # Google Meet video conference room integration for interviews
+├── hrms_theme/           # Dynamic white-label CSS theme engine and branding customizer
+├── hrms_tour/            # Interactive guided UI product tours (tourController.js)
+├── hrms_views/           # Dynamic view filters, saved queries, toggleable table columns
+├── hrms_widgets/         # Dashboard widget framework and metrics visualizers
+├── whatsapp/             # Meta WhatsApp Business API integration for alerts and messaging
+├── dynamic_fields/       # Runtime custom fields on models without database migrations
+├── accessibility/        # WCAG compliance features: high contrast, dyslexic font, text resizing
+├── static/               # Source static assets (JavaScript, CSS, vendor libraries, icons)
+├── staticfiles/          # Collected static files for production deployment via WhiteNoise/Nginx
+├── templates/            # Global HTML templates, authentication views, base master layouts
+├── docker/               # Dockerfile, Nginx configurations, container entrypoint scripts
+└── docs/                 # System documentation, HTML print assets, generated executive PDF
+</code></pre>
+        </div>
+        <div class="chapter-footer">
+            <a href="#top" class="back-to-top-btn"><i class="fa-solid fa-arrow-up me-1"></i> Back to top</a>
+            <span class="chapter-footer-id">Chapter 1 of 24</span>
+        </div>
+    </section>
+    
+
+    <section class="chapter-section" id="chapter-2-base-core-foundation">
+        <div class="chapter-header">
+            <div class="chapter-badge">Chapter 02</div>
+            <h2 class="chapter-title">Core Architecture, Multi-Tenancy & Base Configuration (base)</h2>
+            <p class="chapter-subtitle">Organizational structure, multi-company hierarchy, shifts, work types, approval chains, and system middlewares.</p>
+        </div>
+        <div class="chapter-body">
+            <h2 id="21-overview-responsibilities">2.1 Overview &amp; Responsibilities</h2>
+<p>The <code>base</code> application represents the architectural spine of the HRMS platform. It houses the foundational data models and services that dictate company structure, organizational hierarchies, operational working shifts, rotating schedules, holiday calendars, public announcements, and the unified request-and-approval engine.</p>
+<p>In addition to core organizational data, <code>base</code> implements mission-critical system middlewares enforcing tenant scoping, password rotation, two-factor authentication, and HTTP request sanitization.</p>
+<hr>
+<h2 id="22-database-models-specification">2.2 Database Models Specification</h2>
+<p>The <code>base</code> module defines over 45 relational models governing corporate operations:</p>
+<table>
+<thead>
+<tr>
+<th>Model Name</th>
+<th>Purpose</th>
+<th>Primary Attributes &amp; Relationships</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Company</code></td>
+<td>Root multi-tenancy entity representing legal corporate bodies.</td>
+<td><code>company_name</code>, <code>registration_number</code>, <code>email</code>, <code>phone</code>, <code>website</code>, <code>address</code>, <code>country</code>, <code>currency</code>, <code>logo</code>, <code>timezone</code>, <code>is_active</code></td>
+</tr>
+<tr>
+<td><code>CompanyGroupAssignment</code></td>
+<td>Assigns security permission groups and roles on a per-company basis.</td>
+<td><code>company</code> (FK), <code>group</code> (FK to auth.Group), <code>assigned_by</code></td>
+</tr>
+<tr>
+<td><code>Department</code></td>
+<td>Functional divisions within a company.</td>
+<td><code>department_name</code>, <code>company</code> (FK), <code>department_manager</code> (FK to Employee), <code>parent_department</code> (self-referential FK for sub-departments)</td>
+</tr>
+<tr>
+<td><code>JobPosition</code></td>
+<td>Standardized job titles and organizational roles.</td>
+<td><code>job_position_name</code>, <code>department</code> (FK), <code>company</code> (FK), <code>job_description</code>, <code>maximum_headcount</code></td>
+</tr>
+<tr>
+<td><code>JobRole</code></td>
+<td>Granular responsibilities, duties, and qualifications tied to job positions.</td>
+<td><code>job_role_name</code>, <code>job_position</code> (FK), <code>responsibilities</code>, <code>qualifications</code></td>
+</tr>
+<tr>
+<td><code>WorkType</code></td>
+<td>Core work arrangements (e.g. Regular Office, Remote, Hybrid, Flexi).</td>
+<td><code>work_type_name</code>, <code>company</code> (FK), <code>is_remote</code>, <code>requires_approval</code></td>
+</tr>
+<tr>
+<td><code>RotatingWorkType</code></td>
+<td>Multi-week rotating work arrangements (e.g. 2 weeks on-site, 1 week remote).</td>
+<td><code>name</code>, <code>company</code> (FK), <code>cycle_frequency_days</code>, <code>is_active</code></td>
+</tr>
+<tr>
+<td><code>RotatingWorkTypeAssign</code></td>
+<td>Assignment of rotating work schedules to individual employees.</td>
+<td><code>employee</code> (FK), <code>rotating_work_type</code> (FK), <code>start_date</code>, <code>end_date</code></td>
+</tr>
+<tr>
+<td><code>EmployeeType</code></td>
+<td>Employment classifications (e.g. Permanent, Probationary, Contract, Intern).</td>
+<td><code>employee_type_name</code>, <code>company</code> (FK), <code>benefits_eligible</code></td>
+</tr>
+<tr>
+<td><code>EmployeeShift</code></td>
+<td>Standard operational work timings for employees.</td>
+<td><code>shift_name</code>, <code>company</code> (FK), <code>start_time</code>, <code>end_time</code>, <code>grace_time_minutes</code>, <code>break_duration_minutes</code>, <code>working_days</code></td>
+</tr>
+<tr>
+<td><code>EmployeeShiftSchedule</code></td>
+<td>Daily schedule exceptions and specific shift assignments per date.</td>
+<td><code>employee</code> (FK), <code>shift</code> (FK), <code>schedule_date</code>, <code>notes</code></td>
+</tr>
+<tr>
+<td><code>RotatingShift</code></td>
+<td>Recurring rotational shift patterns (e.g. Morning -&gt; Evening -&gt; Night).</td>
+<td><code>name</code>, <code>company</code> (FK), <code>rotation_frequency_days</code>, <code>shifts</code> (M2M)</td>
+</tr>
+<tr>
+<td><code>RotatingShiftAssign</code></td>
+<td>Links an employee to an automated recurring shift rotation.</td>
+<td><code>employee</code> (FK), <code>rotating_shift</code> (FK), <code>effective_from</code>, <code>active</code></td>
+</tr>
+<tr>
+<td><code>Roster</code></td>
+<td>Master published weekly/monthly duty roster for staff allocations.</td>
+<td><code>employee</code> (FK), <code>shift</code> (FK), <code>date</code>, <code>published_by</code>, <code>status</code></td>
+</tr>
+<tr>
+<td><code>RosterPublishLog</code></td>
+<td>Audit log tracking when rosters are published and notices dispatched.</td>
+<td><code>roster</code> (FK), <code>published_at</code>, <code>published_by</code>, <code>recipients_count</code></td>
+</tr>
+<tr>
+<td><code>WorkTypeRequest</code></td>
+<td>Employee self-service request to alter work type arrangement.</td>
+<td><code>employee</code> (FK), <code>requested_work_type</code> (FK), <code>start_date</code>, <code>end_date</code>, <code>reason</code>, <code>status</code></td>
+</tr>
+<tr>
+<td><code>ShiftRequest</code></td>
+<td>Employee self-service request for temporary shift swap or change.</td>
+<td><code>employee</code> (FK), <code>requested_shift</code> (FK), <code>effective_date</code>, <code>reason</code>, <code>status</code></td>
+</tr>
+<tr>
+<td><code>MultipleApprovalCondition</code></td>
+<td>Configurable approval chains based on roles, departments, or limits.</td>
+<td><code>workflow_type</code>, <code>step_number</code>, <code>approver_role</code>, <code>approver_user</code> (FK), <code>is_mandatory</code></td>
+</tr>
+<tr>
+<td><code>Holidays</code></td>
+<td>Official calendar of national, regional, and company holidays.</td>
+<td><code>holiday_name</code>, <code>holiday_date</code>, <code>company</code> (FK), <code>is_recurring</code>, <code>description</code></td>
+</tr>
+<tr>
+<td><code>CompanyLeaves</code></td>
+<td>Mandatory company shutdown periods or seasonal collective leaves.</td>
+<td><code>name</code>, <code>start_date</code>, <code>end_date</code>, <code>company</code> (FK), <code>deduct_from_leave_balance</code></td>
+</tr>
+<tr>
+<td><code>HRMSMailTemplate</code></td>
+<td>Reusable email notification templates with dynamic placeholder variables.</td>
+<td><code>title</code>, <code>subject</code>, <code>body_html</code>, <code>mail_type</code>, <code>available_variables</code></td>
+</tr>
+<tr>
+<td><code>MailLog</code></td>
+<td>Historical transmission log of all outbound emails dispatched by the system.</td>
+<td><code>template</code> (FK), <code>recipient_email</code>, <code>subject</code>, <code>sent_at</code>, <code>delivery_status</code>, <code>error_message</code></td>
+</tr>
+<tr>
+<td><code>Penalty</code></td>
+<td>Disciplinary penalty rules for chronic late arrivals or unauthorized absence.</td>
+<td><code>penalty_name</code>, <code>violation_threshold_count</code>, <code>action_type</code>, <code>deduction_amount</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="23-core-middlewares-system-interceptors">2.3 Core Middlewares &amp; System Interceptors</h2>
+<p>HRMS enforces critical security, tenant isolation, and session integrity policies via custom Django middlewares defined in <code>base.middleware</code> and <code>hrms.hrms_middlewares</code>:</p>
+<ol>
+<li><strong><code>CompanyMiddleware</code></strong>: Intercepts every incoming HTTP request. Identifies the authenticated user's assigned company context or reads the explicit company header (<code>X-Company-ID</code>). Attaches <code>request.company</code> and activates database filtering to isolate tenant data.</li>
+<li><strong><code>ForcePasswordChangeMiddleware</code></strong>: Inspects user profile state upon successful authentication. If <code>user.force_password_change</code> is set (such as following account provisioning or admin reset), the user is forcibly redirected to the password reset view, blocking all other endpoints until a secure password is established.</li>
+<li><strong><code>TwoFactorAuthMiddleware</code></strong>: Enforces Time-Based One-Time Password (TOTP) verification for privileged user tiers (System Administrators, HR Directors, Payroll Managers) before allowing access to administrative or financial views.</li>
+<li><strong><code>SVGSecurityMiddleware</code></strong>: Inspects all file uploads containing SVG images. Parses and sanitizes XML payloads to neutralize embedded <code>&lt;script&gt;</code>, <code>onload</code>, or malicious SVG-based Cross-Site Scripting (XSS) vectors.</li>
+<li><strong><code>DefaultLanguageMiddleware</code></strong>: Detects user-selected language preferences from cookies or browser accept headers and activates Django's <code>i18n</code> locale context.</li>
+<li><strong><code>MethodNotAllowedMiddleware</code> &amp; <code>MissingParameterMiddleware</code></strong>: Intercepts ill-formed requests or unsupported HTTP verbs, transforming raw Django exceptions into standardized JSON responses with error codes.</li>
+</ol>
+<hr>
+<h2 id="24-user-interfaces-dashboards">2.4 User Interfaces &amp; Dashboards</h2>
+<p>The <code>base</code> module provides several specialized UI layouts:
+- <strong>Unified Main Dashboard (<code>/dashboard/</code>)</strong>: Executive overview presenting KPI metrics: Total Active Headcount, Today's Attendance Rate, Leave Breakdown Donut Chart, Department Distribution Bar Chart, Gender Split, and Company Announcements.
+- <strong>Employee Self-Service (ESS) Dashboard (<code>/ess/</code>)</strong>: Employee-centric portal showing live check-in status, remaining leave balances, upcoming holidays, shift schedules, assigned tasks, and quick-action buttons to request leave or regularize attendance.
+- <strong>Request &amp; Approval Central</strong>: Centralized queue where managers review, approve, or reject pending requests across Leave, Attendance, Shifts, Assets, and Expenses with audit notes.</p>
+        </div>
+        <div class="chapter-footer">
+            <a href="#top" class="back-to-top-btn"><i class="fa-solid fa-arrow-up me-1"></i> Back to top</a>
+            <span class="chapter-footer-id">Chapter 2 of 24</span>
+        </div>
+    </section>
+    
+
+    <section class="chapter-section" id="chapter-3-employee-lifecycle">
+        <div class="chapter-header">
+            <div class="chapter-badge">Chapter 03</div>
+            <h2 class="chapter-title">Employee Profile & Lifecycle Management (employee)</h2>
+            <p class="chapter-subtitle">Employee master records, statutory information, banking, emergency contacts, disciplinary tracking, and company policies.</p>
+        </div>
+        <div class="chapter-body">
+            <h2 id="31-overview-responsibilities">3.1 Overview &amp; Responsibilities</h2>
+<p>The <code>employee</code> application manages the comprehensive digital profile of every staff member. It serves as the single source of truth for personal data, statutory identification, compensation structures, banking credentials, emergency contacts, academic qualifications, previous work history, company policies, and disciplinary proceedings.</p>
+<hr>
+<h2 id="32-database-models-specification">3.2 Database Models Specification</h2>
+<table>
+<thead>
+<tr>
+<th>Model Name</th>
+<th>Purpose</th>
+<th>Primary Attributes &amp; Relationships</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Employee</code></td>
+<td>Master employee profile linked 1:1 to the system <code>HRMSUser</code>.</td>
+<td><code>badge_id</code>, <code>first_name</code>, <code>last_name</code>, <code>email</code>, <code>phone</code>, <code>gender</code>, <code>dob</code>, <code>marital_status</code>, <code>nationality</code>, <code>blood_group</code>, <code>avatar</code>, <code>joining_date</code>, <code>is_active</code></td>
+</tr>
+<tr>
+<td><code>EmployeeWorkInformation</code></td>
+<td>Employment details, contractual status, and reporting lines.</td>
+<td><code>employee</code> (1:1), <code>company</code> (FK), <code>department</code> (FK), <code>job_position</code> (FK), <code>job_role</code> (FK), <code>shift</code> (FK), <code>work_type</code> (FK), <code>reporting_manager</code> (FK), <code>probation_end_date</code></td>
+</tr>
+<tr>
+<td><code>EmployeeBankDetails</code></td>
+<td>Payroll disbursement bank account details and statutory IDs.</td>
+<td><code>employee</code> (1:1), <code>bank_name</code>, <code>account_number</code>, <code>branch_name</code>, <code>ifsc_or_swift_code</code>, <code>pan_or_ssn_number</code>, <code>tax_id</code></td>
+</tr>
+<tr>
+<td><code>EmployeeTag</code></td>
+<td>Metadata categorization tags for skills, projects, or committees.</td>
+<td><code>tag_name</code>, <code>color_code</code>, <code>company</code> (FK)</td>
+</tr>
+<tr>
+<td><code>EmployeeNote</code></td>
+<td>Confidential notes, HR interview logs, and performance remarks.</td>
+<td><code>employee</code> (FK), <code>author</code> (FK), <code>note_title</code>, <code>description</code>, <code>is_confidential</code>, <code>created_at</code></td>
+</tr>
+<tr>
+<td><code>NoteFiles</code></td>
+<td>Document attachments associated with employee notes.</td>
+<td><code>note</code> (FK), <code>attachment_file</code>, <code>file_name</code>, <code>uploaded_at</code></td>
+</tr>
+<tr>
+<td><code>Policy</code></td>
+<td>Corporate compliance policies, handbooks, and code of conduct.</td>
+<td><code>policy_title</code>, <code>company</code> (FK), <code>description</code>, <code>effective_date</code>, <code>mandatory_acknowledgement</code></td>
+</tr>
+<tr>
+<td><code>PolicyMultipleFile</code></td>
+<td>PDF attachments and official documents linked to corporate policies.</td>
+<td><code>policy</code> (FK), <code>document_file</code>, <code>uploaded_at</code></td>
+</tr>
+<tr>
+<td><code>BonusPoint</code></td>
+<td>Recognition and reward points granted by managers or peers.</td>
+<td><code>employee</code> (FK), <code>points</code>, <code>awarded_by</code> (FK), <code>reason</code>, <code>date_awarded</code></td>
+</tr>
+<tr>
+<td><code>Actiontype</code></td>
+<td>Standardized disciplinary action categories (e.g. Warning, Suspension, Fine).</td>
+<td><code>action_name</code>, <code>severity_level</code>, <code>company</code> (FK)</td>
+</tr>
+<tr>
+<td><code>DisciplinaryAction</code></td>
+<td>Records of formal infractions, investigations, and penalties.</td>
+<td><code>employee</code> (FK), <code>action_type</code> (FK), <code>infraction_date</code>, <code>description</code>, <code>decision</code>, <code>penalty_deduction</code>, <code>status</code></td>
+</tr>
+<tr>
+<td><code>ProfileEditFeature</code></td>
+<td>Fine-grained controls dictating which profile fields employees can edit.</td>
+<td><code>field_name</code>, <code>allow_employee_edit</code>, <code>requires_hr_approval</code></td>
+</tr>
+<tr>
+<td><code>EmployeeGeneralSetting</code></td>
+<td>Global settings for employee auto-numbering, prefix, and defaults.</td>
+<td><code>employee_id_prefix</code>, <code>next_auto_number</code>, <code>require_photo_on_creation</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="33-lifecycle-operations-workflows">3.3 Lifecycle Operations &amp; Workflows</h2>
+<h3 id="1-employee-creation-onboarding-handoff">1. Employee Creation &amp; Onboarding Handoff</h3>
+<p>When a candidate successfully finishes onboarding or an HR admin manually creates a staff record:
+1. An <code>Employee</code> profile is generated, and a unique <code>badge_id</code> is assigned according to <code>EmployeeGeneralSetting</code>.
+2. A corresponding <code>HRMSUser</code> authentication record is provisioned with a secure random password and temporary flag.
+3. Reporting manager, shift timings, work types, and departments are configured in <code>EmployeeWorkInformation</code>.
+4. Mandatory corporate policies (<code>Policy</code>) are automatically bound to the new employee, triggering an acknowledgement notification on their next login.</p>
+<h3 id="2-disciplinary-action-governance">2. Disciplinary Action &amp; Governance</h3>
+<p>When compliance violations or behavioral infractions occur:
+1. HR initiates a <code>DisciplinaryAction</code> linking the employee and an <code>Actiontype</code>.
+2. Documentation, witness statements, and formal warnings are attached.
+3. If financial penalties or suspensions are levied, <code>penalty_deduction</code> communicates directly with the <code>payroll</code> module during the subsequent monthly pay cycle to apply structured wage deductions.</p>
+<h3 id="3-employee-self-service-ess-profile-management">3. Employee Self-Service (ESS) Profile Management</h3>
+<p>Employees can review and update non-critical personal data (e.g. personal contact numbers, emergency contacts, residential address) directly from their ESS portal. The <code>ProfileEditFeature</code> model allows HR administrators to lock sensitive fields (e.g. Bank Account Number, Legal Name, Date of Birth, Job Title) so that modifications require formal HR ticket submission and verification.</p>
+        </div>
+        <div class="chapter-footer">
+            <a href="#top" class="back-to-top-btn"><i class="fa-solid fa-arrow-up me-1"></i> Back to top</a>
+            <span class="chapter-footer-id">Chapter 3 of 24</span>
+        </div>
+    </section>
+    
+
+    <section class="chapter-section" id="chapter-4-attendance-engine">
+        <div class="chapter-header">
+            <div class="chapter-badge">Chapter 04</div>
+            <h2 class="chapter-title">Attendance & Time Tracking Engine (attendance)</h2>
+            <p class="chapter-subtitle">Clock in/out tracking, grace periods, overtime computation, late-in/early-out rules, and work records.</p>
+        </div>
+        <div class="chapter-body">
+            <h2 id="41-overview-responsibilities">4.1 Overview &amp; Responsibilities</h2>
+<p>The <code>attendance</code> application records, computes, and audits employee working hours across physical offices, remote workstations, and field operations. It tracks precise timestamps, evaluates attendance against scheduled shift rules, calculates grace period tolerances, detects late arrivals and early departures, manages overtime approvals, and provides daily summary work records utilized directly by the payroll calculation engine.</p>
+<hr>
+<h2 id="42-database-models-specification">4.2 Database Models Specification</h2>
+<table>
+<thead>
+<tr>
+<th>Model Name</th>
+<th>Purpose</th>
+<th>Primary Attributes &amp; Relationships</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Attendance</code></td>
+<td>Primary daily attendance record per employee per calendar date.</td>
+<td><code>employee</code> (FK), <code>attendance_date</code>, <code>attendance_clock_in</code>, <code>attendance_clock_out</code>, <code>attendance_clock_in_date</code>, <code>attendance_clock_out_date</code>, <code>minimum_hour</code>, <code>at_work</code>, <code>attendance_worked_hour</code>, <code>is_validated</code></td>
+</tr>
+<tr>
+<td><code>AttendanceActivity</code></td>
+<td>Raw punch logs capturing individual clock-in/out events and sources.</td>
+<td><code>employee</code> (FK), <code>attendance_date</code>, <code>time</code>, <code>clock_in</code>, <code>clock_out</code>, <code>device_id</code>, <code>ip_address</code>, <code>latitude</code>, <code>longitude</code></td>
+</tr>
+<tr>
+<td><code>BatchAttendance</code></td>
+<td>Bulk attendance creation records for shifts, teams, or departments.</td>
+<td><code>batch_name</code>, <code>company</code> (FK), <code>department</code> (FK), <code>shift</code> (FK), <code>date</code>, <code>created_by</code></td>
+</tr>
+<tr>
+<td><code>AttendanceOverTime</code></td>
+<td>Tracks verified overtime hours and managerial approval state.</td>
+<td><code>employee</code> (FK), <code>attendance</code> (FK), <code>month_sequence</code>, <code>overtime_hour</code>, <code>status</code> (Requested/Approved/Rejected), <code>approved_by</code></td>
+</tr>
+<tr>
+<td><code>AttendanceLateComeEarlyOut</code></td>
+<td>Tracks minutes and frequency of late arrivals and early departures.</td>
+<td><code>employee</code> (FK), <code>attendance</code> (FK), <code>attendance_date</code>, <code>type</code> (Late Come / Early Out), <code>duration_minutes</code>, <code>reason</code>, <code>is_excused</code></td>
+</tr>
+<tr>
+<td><code>AttendanceValidationCondition</code></td>
+<td>Logical threshold rules determining daily status (Present, Half Day, Absent).</td>
+<td><code>company</code> (FK), <code>minimum_hours_full_day</code>, <code>minimum_hours_half_day</code>, <code>auto_validate</code></td>
+</tr>
+<tr>
+<td><code>GraceTime</code></td>
+<td>Configurable grace tolerance windows before late-arrival penalties trigger.</td>
+<td><code>company</code> (FK), <code>shift</code> (FK), <code>allowed_late_minutes</code>, <code>allowed_grace_frequency_per_month</code></td>
+</tr>
+<tr>
+<td><code>AttendanceGeneralSetting</code></td>
+<td>Global operational rules for auto-clock-out, selfie capture, and IP locks.</td>
+<td><code>auto_clock_out_time</code>, <code>enable_ip_restriction</code>, <code>require_selfie_on_punch</code>, <code>enable_overtime_approval</code></td>
+</tr>
+<tr>
+<td><code>WorkRecords</code></td>
+<td>Aggregated daily work units feeding directly into payroll processing.</td>
+<td><code>employee</code> (FK), <code>date</code>, <code>regular_hours</code>, <code>overtime_hours</code>, <code>loss_of_pay_units</code>, <code>salary_ready</code></td>
+</tr>
+<tr>
+<td><code>AttendanceConflictResolution</code></td>
+<td>Resolution record for punch collisions, missing check-outs, or hardware drift.</td>
+<td><code>attendance</code> (FK), <code>conflict_type</code>, <code>original_value</code>, <code>corrected_value</code>, <code>resolved_by</code></td>
+</tr>
+<tr>
+<td><code>AttendanceDailyHours</code> &amp; <code>AttendanceSummaryHours</code></td>
+<td>Pre-aggregated caches of daily and monthly hours for instant dashboard reporting.</td>
+<td><code>employee</code> (FK), <code>period_date</code>, <code>total_hours_worked</code>, <code>overtime_total</code>, <code>late_count</code>, <code>early_out_count</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="43-key-workflows-business-logic">4.3 Key Workflows &amp; Business Logic</h2>
+<h3 id="1-clock-in-clock-out-lifecycle">1. Clock In / Clock Out Lifecycle</h3>
+<ol>
+<li>When an employee punches via the web portal, mobile app, or biometric device, an <code>AttendanceActivity</code> record is logged with timestamp, device source, IP, and GPS coordinates.</li>
+<li>If no open <code>Attendance</code> record exists for the date, a new record is initialized with <code>attendance_clock_in</code>.</li>
+<li>Subsequent punches calculate total duration at work (<code>attendance_worked_hour</code>).</li>
+<li>Shift start time is compared with actual check-in time. If the arrival exceeds the assigned shift's <code>GraceTime</code>, an <code>AttendanceLateComeEarlyOut</code> record is registered.</li>
+<li>If total worked hours fall below <code>minimum_hours_half_day</code>, the day is marked as Absent or Half Day based on <code>AttendanceValidationCondition</code>.</li>
+</ol>
+<h3 id="2-overtime-regularization-requests">2. Overtime &amp; Regularization Requests</h3>
+<ul>
+<li>When an employee works beyond their scheduled shift conclusion, surplus minutes are captured. If overtime tracking is active, an <code>AttendanceOverTime</code> request is routed to the employee's reporting manager.</li>
+<li>If an employee forgets to clock in/out, they submit an <strong>Attendance Regularization Request</strong> via ESS with justification notes. Upon manager approval, the master <code>Attendance</code> record updates and is marked <code>is_validated = True</code>.</li>
+</ul>
+        </div>
+        <div class="chapter-footer">
+            <a href="#top" class="back-to-top-btn"><i class="fa-solid fa-arrow-up me-1"></i> Back to top</a>
+            <span class="chapter-footer-id">Chapter 4 of 24</span>
+        </div>
+    </section>
+    
+
+    <section class="chapter-section" id="chapter-5-biometric-face-geofence">
+        <div class="chapter-header">
+            <div class="chapter-badge">Chapter 05</div>
+            <h2 class="chapter-title">Biometric Devices, Facial Recognition & Geofencing (biometric, facedetection, geofencing)</h2>
+            <p class="chapter-subtitle">Hardware time clock synchronization, AI camera face recognition, and GPS boundary validation.</p>
+        </div>
+        <div class="chapter-body">
+            <h2 id="51-overview-responsibilities">5.1 Overview &amp; Responsibilities</h2>
+<p>To accommodate varied corporate environments—from traditional corporate offices and manufacturing facilities to remote and field workforces—HRMS incorporates three advanced verification modules:
+1. <strong><code>biometric</code></strong>: Direct hardware network integration with standalone biometric terminals (ZKTeco, Matrix COSEC, TCP/IP time-clocks).
+2. <strong><code>facedetection</code></strong>: Browser and kiosk camera-based facial recognition attendance capture.
+3. <strong><code>geofencing</code></strong>: GPS location perimeter validation for mobile and field employees.</p>
+<hr>
+<h2 id="52-biometric-device-integration-biometric">5.2 Biometric Device Integration (<code>biometric</code>)</h2>
+<h3 id="database-models">Database Models</h3>
+<ul>
+<li><code>BiometricDevices</code>: Represents physical hardware clocks. Attributes: <code>device_name</code>, <code>device_ip</code>, <code>port</code>, <code>device_type</code> (ZKTeco, Matrix, Suprema), <code>username</code>, <code>password</code>, <code>company</code> (FK), <code>last_sync_time</code>, <code>is_active</code>.</li>
+<li><code>BiometricEmployees</code>: Maps HRMS internal <code>badge_id</code> to hardware device user IDs, fingerprint templates, and RFID card numbers.</li>
+<li><code>COSECAttendanceArguments</code>: Specialized parameters for Matrix COSEC enterprise device communication.</li>
+</ul>
+<h3 id="synchronization-architecture">Synchronization Architecture</h3>
+<p>A background synchronization service connects via TCP socket or HTTP API to active biometric devices on scheduled cron intervals:
+1. Queries the terminal's punch log buffer.
+2. Extracts raw punch records (<code>user_id</code>, <code>timestamp</code>, <code>in_out_mode</code>).
+3. Resolves the corresponding <code>Employee</code> record via <code>BiometricEmployees</code>.
+4. Ingests raw punches into <code>AttendanceActivity</code> and computes daily <code>Attendance</code>.
+5. Clears or acknowledges processed logs on the physical terminal to prevent duplicates.</p>
+<hr>
+<h2 id="53-facial-recognition-attendance-facedetection">5.3 Facial Recognition Attendance (<code>facedetection</code>)</h2>
+<h3 id="database-models-workflow">Database Models &amp; Workflow</h3>
+<ul>
+<li><code>FaceDetection</code>: System configuration for camera-based face verification, confidence threshold (e.g. 0.85), and anti-spoofing flags.</li>
+<li><code>EmployeeFaceDetection</code>: Stores 128-dimensional facial feature vector embeddings extracted from employee photo uploads.</li>
+</ul>
+<h3 id="kiosk-web-punch-flow">Kiosk &amp; Web Punch Flow</h3>
+<ol>
+<li>An on-site tablet kiosk or employee browser activates the camera.</li>
+<li>Captures face frame, evaluates liveness (blink or micro-movement detection to prevent photo spoofing).</li>
+<li>Compares facial embedding vectors against the registered gallery in <code>EmployeeFaceDetection</code> using Euclidean distance / cosine similarity.</li>
+<li>On positive match (confidence &gt;= threshold), generates an automated clock-in/out in <code>attendance</code>.</li>
+</ol>
+<hr>
+<h2 id="54-geofencing-boundary-validation-geofencing">5.4 Geofencing Boundary Validation (<code>geofencing</code>)</h2>
+<h3 id="database-models-logic">Database Models &amp; Logic</h3>
+<ul>
+<li><code>GeoFencing</code>: Office or work-site boundary definition: <code>location_name</code>, <code>company</code> (FK), <code>latitude</code>, <code>longitude</code>, <code>radius_in_meters</code>, <code>is_active</code>.</li>
+</ul>
+<h3 id="validation-workflow">Validation Workflow</h3>
+<p>When field employees clock in via mobile ESS:
+1. The client sends HTML5 Geolocation coordinates (<code>lat</code>, <code>lng</code>, <code>accuracy</code>).
+2. The server executes the <strong>Haversine formula</strong> against all active <code>GeoFencing</code> sites assigned to the employee:
+   $$d = 2r \arcsin\left(\sqrt{\sin^2\left(\frac{\Delta \phi}{2}\right) + \cos(\phi_1)\cos(\phi_2)\sin^2\left(\frac{\Delta \lambda}{2}\right)}\right)$$
+3. If distance $d \le \text{radius}$, the punch is approved and tagged with location.
+4. If out of bounds, the punch is rejected or submitted as an exception flag requiring manager review.</p>
+        </div>
+        <div class="chapter-footer">
+            <a href="#top" class="back-to-top-btn"><i class="fa-solid fa-arrow-up me-1"></i> Back to top</a>
+            <span class="chapter-footer-id">Chapter 5 of 24</span>
+        </div>
+    </section>
+    
+
+    <section class="chapter-section" id="chapter-6-leave-management">
+        <div class="chapter-header">
+            <div class="chapter-badge">Chapter 06</div>
+            <h2 class="chapter-title">Leave & Absence Management (leave)</h2>
+            <p class="chapter-subtitle">Leave types, accrual logic, available balances, multi-tier approvals, carry-overs, and holiday calendars.</p>
+        </div>
+        <div class="chapter-body">
+            <h2 id="61-overview-responsibilities">6.1 Overview &amp; Responsibilities</h2>
+<p>The <code>leave</code> application provides comprehensive absence administration. It manages categorized leave quotas (Annual, Sick, Casual, Maternity, Paternity, Compensatory Off, Unpaid Leave), calculates dynamic monthly or annual accruals, verifies supporting medical documents, enforces blackout dates, and manages multi-level approval hierarchies.</p>
+<hr>
+<h2 id="62-database-models-specification">6.2 Database Models Specification</h2>
+<table>
+<thead>
+<tr>
+<th>Model Name</th>
+<th>Purpose</th>
+<th>Primary Attributes &amp; Relationships</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LeaveType</code></td>
+<td>Definition of distinct leave categories.</td>
+<td><code>name</code>, <code>company</code> (FK), <code>color_code</code>, <code>is_paid</code>, <code>is_carry_forward</code>, <code>max_carry_forward_days</code>, <code>is_encashable</code>, <code>requires_approval</code>, <code>requires_attachment</code></td>
+</tr>
+<tr>
+<td><code>LeaveTypeCondition</code></td>
+<td>Accrual rules, probation eligibility, and duration limits.</td>
+<td><code>leave_type</code> (FK), <code>accrual_frequency</code> (Monthly/Yearly/Lump Sum), <code>probation_period_months</code>, <code>max_consecutive_days</code>, <code>sandwich_rule_active</code></td>
+</tr>
+<tr>
+<td><code>AvailableLeave</code></td>
+<td>Live balance ledger per employee per leave type.</td>
+<td><code>employee</code> (FK), <code>leave_type</code> (FK), <code>allocated_days</code>, <code>used_days</code>, <code>pending_approval_days</code>, <code>carry_forward_days</code>, <code>remaining_days</code></td>
+</tr>
+<tr>
+<td><code>LeaveRequest</code></td>
+<td>Employee leave application record.</td>
+<td><code>employee</code> (FK), <code>leave_type</code> (FK), <code>start_date</code>, <code>end_date</code>, <code>duration</code> (Full Day / Half Day), <code>reason</code>, <code>status</code> (Requested/Approved/Rejected/Cancelled)</td>
+</tr>
+<tr>
+<td><code>LeaverequestFile</code></td>
+<td>File attachments (medical certificates, travel orders) for leave requests.</td>
+<td><code>leave_request</code> (FK), <code>attachment_file</code>, <code>uploaded_at</code></td>
+</tr>
+<tr>
+<td><code>LeaverequestComment</code></td>
+<td>Two-way dialogue thread between applicant and approving managers.</td>
+<td><code>leave_request</code> (FK), <code>commenter</code> (FK to User), <code>comment_text</code>, <code>created_at</code></td>
+</tr>
+<tr>
+<td><code>LeaveAllocationRequest</code></td>
+<td>Employee requests for additional leave grants (e.g. Compensatory Off).</td>
+<td><code>employee</code> (FK), <code>leave_type</code> (FK), <code>requested_days</code>, <code>reason</code>, <code>status</code></td>
+</tr>
+<tr>
+<td><code>LeaveallocationrequestComment</code></td>
+<td>Discussion notes on manual leave allocation claims.</td>
+<td><code>leave_allocation_request</code> (FK), <code>commenter</code> (FK), <code>comment_text</code></td>
+</tr>
+<tr>
+<td><code>LeaveRequestConditionApproval</code></td>
+<td>Tracks individual stage approvals in a multi-tier approval chain.</td>
+<td><code>leave_request</code> (FK), <code>approval_stage</code>, <code>approver</code> (FK), <code>action</code> (Approved/Rejected), <code>action_date</code></td>
+</tr>
+<tr>
+<td><code>RestrictLeave</code></td>
+<td>Departmental or corporate blackout windows restricting leave.</td>
+<td><code>company</code> (FK), <code>department</code> (FK), <code>start_date</code>, <code>end_date</code>, <code>reason</code></td>
+</tr>
+<tr>
+<td><code>LeaveGeneralSetting</code></td>
+<td>Global parameters governing retroactive leave limits and calendar displays.</td>
+<td><code>max_past_days_to_apply</code>, <code>include_holidays_in_duration</code>, <code>enable_comp_off</code></td>
+</tr>
+<tr>
+<td><code>EmployeePastLeaveRestrict</code></td>
+<td>Specific exemptions or restrictions on applying for past-dated leave.</td>
+<td><code>employee</code> (FK), <code>allow_past_leave</code>, <code>max_retroactive_days</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="63-leave-application-approval-workflow">6.3 Leave Application &amp; Approval Workflow</h2>
+<pre><code class="language-text">[Employee Submits Request]
+           │
+           ▼
+[Validate Balance in AvailableLeave]
+           │
+           ├─ Negative Balance? ──► [Reject Application]
+           │
+           ▼
+[Check RestrictLeave Blackout Windows &amp; Past Limits]
+           │
+           ▼
+[Determine Approver Sequence (MultipleApprovalCondition)]
+           │
+           ▼
+[Tier 1: Reporting Manager Review]
+    ├─ Rejected ──► [Status: Rejected, Release Pending Days]
+    └─ Approved ──► [Tier 2: HR / Department Head Review]
+                         ├─ Rejected ──► [Status: Rejected]
+                         └─ Approved ──► [Status: Approved, Deduct from Remaining Days]
+</code></pre>
+<ul>
+<li><strong>Sandwich Rule Processing</strong>: If configured on <code>LeaveTypeCondition</code>, weekends or public holidays occurring between leave days are automatically counted as leave consumption.</li>
+<li><strong>Accrual Engine</strong>: Scheduled monthly background jobs credit fractional leave allocations (e.g. 1.75 days/month for Annual Leave) directly into <code>AvailableLeave</code>.</li>
+</ul>
+        </div>
+        <div class="chapter-footer">
+            <a href="#top" class="back-to-top-btn"><i class="fa-solid fa-arrow-up me-1"></i> Back to top</a>
+            <span class="chapter-footer-id">Chapter 6 of 24</span>
+        </div>
+    </section>
+    
+
+    <section class="chapter-section" id="chapter-7-payroll-compensation">
+        <div class="chapter-header">
+            <div class="chapter-badge">Chapter 07</div>
+            <h2 class="chapter-title">Payroll, Compensation & Benefits Administration (payroll)</h2>
+            <p class="chapter-subtitle">Employment contracts, salary structures, earnings, statutory deductions, tax brackets, loans, and batch payslips.</p>
+        </div>
+        <div class="chapter-body">
+            <h2 id="71-overview-responsibilities">7.1 Overview &amp; Responsibilities</h2>
+<p>The <code>payroll</code> application constitutes the financial compensation core of HRMS. It models complex remuneration packages, computes earnings allowances, calculates statutory deductions and income tax brackets, processes employee loans and expense reimbursements, generates monthly batch payslips, renders official PDF payslips, and archives detailed audit trails.</p>
+<hr>
+<h2 id="72-database-models-specification">7.2 Database Models Specification</h2>
+<table>
+<thead>
+<tr>
+<th>Model Name</th>
+<th>Purpose</th>
+<th>Primary Attributes &amp; Relationships</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Contract</code></td>
+<td>Employment terms, contract validity, and compensation baseline.</td>
+<td><code>employee</code> (FK), <code>contract_title</code>, <code>wage_type</code> (Monthly/Hourly), <code>wage</code>, <code>start_date</code>, <code>end_date</code>, <code>salary_structure</code> (FK), <code>status</code> (Draft/Active/Terminated)</td>
+</tr>
+<tr>
+<td><code>SalaryStructure</code></td>
+<td>Master compensation template combining allowances and deduction rules.</td>
+<td><code>structure_name</code>, <code>company</code> (FK), <code>base_salary_percentage</code>, <code>description</code></td>
+</tr>
+<tr>
+<td><code>Allowance</code></td>
+<td>Earnings components (e.g. Basic, HRA, Medical, Transport, Performance Bonus).</td>
+<td><code>allowance_name</code>, <code>company</code> (FK), <code>value_type</code> (Fixed Amount / Percentage of Base), <code>value</code>, <code>is_taxable</code>, <code>is_condition_based</code></td>
+</tr>
+<tr>
+<td><code>Deduction</code></td>
+<td>Deduction components (e.g. Provident Fund, Health Insurance, Professional Tax).</td>
+<td><code>deduction_name</code>, <code>company</code> (FK), <code>value_type</code> (Fixed / Percentage), <code>value</code>, <code>is_statutory</code></td>
+</tr>
+<tr>
+<td><code>FilingStatus</code> &amp; <code>TaxBracket</code></td>
+<td>Tax slabs, progressive tax rates, and standard deduction brackets.</td>
+<td><code>filing_status_name</code>, <code>min_income</code>, <code>max_income</code>, <code>tax_percentage</code>, <code>fixed_tax_amount</code></td>
+</tr>
+<tr>
+<td><code>Payslip</code></td>
+<td>Master monthly remuneration statement for an employee.</td>
+<td><code>employee</code> (FK), <code>contract</code> (FK), <code>month</code>, <code>year</code>, <code>basic_pay</code>, <code>gross_pay</code>, <code>total_allowance</code>, <code>total_deduction</code>, <code>net_pay</code>, <code>status</code> (Draft/Generated/Approved/Paid), <code>pdf_file</code></td>
+</tr>
+<tr>
+<td><code>PayslipAutoGenerate</code></td>
+<td>Scheduled batch runner configuration for automated monthly payroll.</td>
+<td><code>company</code> (FK), <code>generation_day_of_month</code>, <code>auto_send_email</code>, <code>is_active</code></td>
+</tr>
+<tr>
+<td><code>LoanAccount</code></td>
+<td>Corporate employee loans and automated installment recovery.</td>
+<td><code>employee</code> (FK), <code>loan_amount</code>, <code>monthly_installment</code>, <code>total_installments</code>, <code>paid_installments</code>, <code>remaining_balance</code>, <code>interest_rate</code>, <code>status</code></td>
+</tr>
+<tr>
+<td><code>Reimbursement</code></td>
+<td>Employee business expense claims and receipts.</td>
+<td><code>employee</code> (FK), <code>claim_title</code>, <code>amount</code>, <code>receipt_date</code>, <code>status</code> (Requested/Approved/Paid), <code>approved_by</code></td>
+</tr>
+<tr>
+<td><code>ReimbursementFile</code></td>
+<td>Scanned receipts, invoices, and expense documentation.</td>
+<td><code>reimbursement</code> (FK), <code>attachment_file</code>, <code>uploaded_at</code></td>
+</tr>
+<tr>
+<td><code>PayrollGeneralSetting</code></td>
+<td>Global payroll parameters: currency, work days per month, loss-of-pay formula.</td>
+<td><code>currency_symbol</code>, <code>default_work_days_per_month</code>, <code>lop_calculation_mode</code>, <code>payslip_prefix</code></td>
+</tr>
+<tr>
+<td><code>EncashmentGeneralSettings</code></td>
+<td>Policies for leave encashment calculations upon year-end or separation.</td>
+<td><code>encashable_leave_types</code> (M2M), <code>encashment_wage_basis</code> (Basic vs Gross), <code>max_encashable_days</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="73-salary-calculation-formula-workflow">7.3 Salary Calculation Formula &amp; Workflow</h2>
+<p>The calculation of monthly remuneration follows rigorous financial formulas:</p>
+<ol>
+<li>
+<p><strong>Working Days &amp; Loss of Pay (LOP)</strong>:
+   $$\text{Effective Days} = \text{Total Month Days} - \text{Unpaid Leaves} - \text{Unauthorized Absences}$$
+   $$\text{Base Pro-rated Salary} = \left(\frac{\text{Contract Wage}}{\text{Work Days in Month}}\right) \times \text{Effective Days}$$</p>
+</li>
+<li>
+<p><strong>Gross Earnings</strong>:
+   $$\text{Gross Pay} = \text{Base Salary} + \sum \text{Allowances} + \text{Approved Overtime} + \text{Reimbursements}$$</p>
+</li>
+<li>
+<p><strong>Total Deductions</strong>:
+   $$\text{Total Deductions} = \sum \text{Statutory Deductions} + \text{Income Tax} + \text{Loan Installment} + \text{Disciplinary Fines}$$</p>
+</li>
+<li>
+<p><strong>Net Disbursed Salary</strong>:
+   $$\text{Net Pay} = \text{Gross Pay} - \text{Total Deductions}$$</p>
+</li>
+</ol>
+<p>When batch payslip generation executes, the system creates individual <code>Payslip</code> records, generates formatted PDF documents, stores them in the media archive, and optionally delivers them via email to each employee.</p>
+        </div>
+        <div class="chapter-footer">
+            <a href="#top" class="back-to-top-btn"><i class="fa-solid fa-arrow-up me-1"></i> Back to top</a>
+            <span class="chapter-footer-id">Chapter 7 of 24</span>
+        </div>
+    </section>
+    
+
+    <section class="chapter-section" id="chapter-8-performance-pms">
+        <div class="chapter-header">
+            <div class="chapter-badge">Chapter 08</div>
+            <h2 class="chapter-title">Performance Management System (pms)</h2>
+            <p class="chapter-subtitle">Objectives & Key Results (OKRs), KPIs, 360-degree feedback, appraisal review cycles, and gamified bonus points.</p>
+        </div>
+        <div class="chapter-body">
+            <h2 id="81-overview-responsibilities">8.1 Overview &amp; Responsibilities</h2>
+<p>The <code>pms</code> application facilitates modern organizational alignment through Objectives and Key Results (OKRs), annual and quarterly appraisal cycles, 360-degree peer reviews, 1-on-1 performance meetings, and gamified employee recognition points.</p>
+<hr>
+<h2 id="82-database-models-specification">8.2 Database Models Specification</h2>
+<table>
+<thead>
+<tr>
+<th>Model Name</th>
+<th>Purpose</th>
+<th>Primary Attributes &amp; Relationships</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Period</code></td>
+<td>Appraisal evaluation timeframes (e.g. Q1 2026, Annual Review 2026).</td>
+<td><code>period_name</code>, <code>company</code> (FK), <code>start_date</code>, <code>end_date</code>, <code>is_active</code></td>
+</tr>
+<tr>
+<td><code>Objective</code></td>
+<td>High-level organizational, departmental, or team strategic goals.</td>
+<td><code>title</code>, <code>company</code> (FK), <code>department</code> (FK), <code>period</code> (FK), <code>target_value</code>, <code>unit</code>, <code>description</code></td>
+</tr>
+<tr>
+<td><code>KeyResult</code></td>
+<td>Specific, quantifiable outcomes required to accomplish an Objective.</td>
+<td><code>objective</code> (FK), <code>title</code>, <code>start_value</code>, <code>target_value</code>, <code>current_value</code>, <code>unit</code>, <code>weightage_percentage</code></td>
+</tr>
+<tr>
+<td><code>EmployeeObjective</code> &amp; <code>EmployeeKeyResult</code></td>
+<td>Cascaded individual goals assigned to specific employees.</td>
+<td><code>employee</code> (FK), <code>objective</code> (FK), <code>progress_percentage</code>, <code>self_rating</code>, <code>manager_rating</code>, <code>status</code></td>
+</tr>
+<tr>
+<td><code>QuestionTemplate</code> &amp; <code>Question</code></td>
+<td>Standardized evaluation forms for appraisals and feedback surveys.</td>
+<td><code>template_name</code>, <code>question_text</code>, <code>question_type</code> (Rating 1-5, Text, Multiple Choice)</td>
+</tr>
+<tr>
+<td><code>Feedback</code> &amp; <code>AnonymousFeedback</code></td>
+<td>Continuous peer praise, constructive feedback, and anonymous surveys.</td>
+<td><code>employee</code> (FK), <code>reviewer</code> (FK), <code>period</code> (FK), <code>feedback_text</code>, <code>rating</code>, <code>is_anonymous</code></td>
+</tr>
+<tr>
+<td><code>Meetings</code> &amp; <code>MeetingsAnswer</code></td>
+<td>1-on-1 performance review sessions and documented action items.</td>
+<td><code>employee</code> (FK), <code>manager</code> (FK), <code>meeting_date</code>, <code>agenda</code>, <code>minutes</code>, <code>next_steps</code></td>
+</tr>
+<tr>
+<td><code>EmployeeBonusPoint</code> &amp; <code>BonusPointSetting</code></td>
+<td>Gamified peer-to-peer and managerial recognition point ledger.</td>
+<td><code>employee</code> (FK), <code>points</code>, <code>awarded_by</code> (FK), <code>reason</code>, <code>monthly_award_limit</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="83-appraisal-review-okr-tracking-process">8.3 Appraisal Review &amp; OKR Tracking Process</h2>
+<ol>
+<li><strong>Goal Setting</strong>: At the beginning of each <code>Period</code>, strategic <code>Objective</code> targets are established and broken down into quantifiable <code>KeyResult</code> milestones.</li>
+<li><strong>Cascading</strong>: Objectives cascade down to individual <code>EmployeeObjective</code> records. Employees update progress percentages weekly or monthly.</li>
+<li><strong>Appraisal Review</strong>: At period close, formal evaluations are initiated:</li>
+<li><strong>Self-Assessment</strong>: The employee provides self-ratings and narrative justifications.</li>
+<li><strong>360-Degree Feedback</strong>: Selected peers, direct reports, and cross-functional collaborators submit evaluations via <code>Feedback</code>.</li>
+<li><strong>Manager Review</strong>: The reporting manager reviews combined feedback, assigns final ratings, and conducts a formal <code>Meetings</code> review.</li>
+</ol>
+        </div>
+        <div class="chapter-footer">
+            <a href="#top" class="back-to-top-btn"><i class="fa-solid fa-arrow-up me-1"></i> Back to top</a>
+            <span class="chapter-footer-id">Chapter 8 of 24</span>
+        </div>
+    </section>
+    
+
+    <section class="chapter-section" id="chapter-9-asset-management">
+        <div class="chapter-header">
+            <div class="chapter-badge">Chapter 09</div>
+            <h2 class="chapter-title">Asset & Equipment Lifecycle Management (asset)</h2>
+            <p class="chapter-subtitle">Hardware and software inventory, batch procurement, employee allocation, condition photos, and returns.</p>
+        </div>
+        <div class="chapter-body">
+            <h2 id="91-overview-responsibilities">9.1 Overview &amp; Responsibilities</h2>
+<p>The <code>asset</code> application tracks the complete custody and lifecycle of company physical and digital property—laptops, monitors, mobile phones, peripherals, software licenses, and vehicles. It manages procurement batches, barcode/serial number identification, employee allocations, handover agreements, return condition photographic proof, and maintenance reporting.</p>
+<hr>
+<h2 id="92-database-models-specification">9.2 Database Models Specification</h2>
+<table>
+<thead>
+<tr>
+<th>Model Name</th>
+<th>Purpose</th>
+<th>Primary Attributes &amp; Relationships</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AssetCategory</code></td>
+<td>Classification of asset types (e.g. Laptops, Mobile Devices, Furniture, Software).</td>
+<td><code>category_name</code>, <code>company</code> (FK), <code>description</code>, <code>depreciation_rate_percentage</code></td>
+</tr>
+<tr>
+<td><code>AssetLot</code></td>
+<td>Procurement batches and purchase orders.</td>
+<td><code>lot_number</code>, <code>vendor_name</code>, <code>purchase_date</code>, <code>invoice_number</code>, <code>total_quantity</code>, <code>total_cost</code></td>
+</tr>
+<tr>
+<td><code>Asset</code></td>
+<td>Master asset specification profile.</td>
+<td><code>asset_name</code>, <code>category</code> (FK), <code>lot</code> (FK), <code>manufacturer</code>, <code>model_number</code>, <code>specifications</code></td>
+</tr>
+<tr>
+<td><code>AssetItem</code></td>
+<td>Distinct individual physical unit with unique tracking identifiers.</td>
+<td><code>asset</code> (FK), <code>tracking_id</code>, <code>serial_number</code>, <code>barcode</code>, <code>purchase_cost</code>, <code>warranty_expiry_date</code>, <code>status</code> (Available/Assigned/In Repair/Disposed)</td>
+</tr>
+<tr>
+<td><code>AssetAssignment</code></td>
+<td>Custody record tracking assignment of an asset to an employee.</td>
+<td><code>asset_item</code> (FK), <code>assigned_to</code> (FK to Employee), <code>assigned_by</code> (FK), <code>assigned_date</code>, <code>expected_return_date</code>, <code>notes</code></td>
+</tr>
+<tr>
+<td><code>AssetRequest</code></td>
+<td>Employee self-service requisition for equipment or replacement.</td>
+<td><code>employee</code> (FK), <code>category</code> (FK), <code>reason</code>, <code>urgency</code>, <code>status</code> (Requested/Approved/Allocated/Rejected)</td>
+</tr>
+<tr>
+<td><code>ReturnImages</code></td>
+<td>Photographic documentation verifying asset physical condition upon return.</td>
+<td><code>asset_assignment</code> (FK), <code>image_file</code>, <code>uploaded_at</code>, <code>notes</code></td>
+</tr>
+<tr>
+<td><code>AssetReport</code></td>
+<td>Damage reports, maintenance logs, and depreciation records.</td>
+<td><code>asset_item</code> (FK), <code>report_type</code> (Maintenance/Damage/Audit), <code>cost</code>, <code>description</code>, <code>reported_by</code></td>
+</tr>
+<tr>
+<td><code>AssetDocuments</code></td>
+<td>Invoices, warranty cards, user manuals, and procurement contracts.</td>
+<td><code>asset</code> (FK), <code>document_file</code>, <code>document_name</code>, <code>uploaded_at</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="93-asset-lifecycle-workflow">9.3 Asset Lifecycle Workflow</h2>
+<ol>
+<li><strong>Procurement &amp; Intake</strong>: Assets arrive in bulk batches recorded under <code>AssetLot</code>. Individual physical items are registered in <code>AssetItem</code> with unique serial numbers, barcodes, and warranty dates.</li>
+<li><strong>Allocation</strong>: When an employee joins or requests equipment via <code>AssetRequest</code>, HR or IT assigns an available <code>AssetItem</code> creating an <code>AssetAssignment</code>. An official handover form is generated.</li>
+<li><strong>Return &amp; Condition Audit</strong>: Upon offboarding or equipment upgrades, the asset is returned. IT captures digital photographs stored in <code>ReturnImages</code> to confirm device condition, screen integrity, and hardware completeness before releasing clearance.</li>
+</ol>
+        </div>
+        <div class="chapter-footer">
+            <a href="#top" class="back-to-top-btn"><i class="fa-solid fa-arrow-up me-1"></i> Back to top</a>
+            <span class="chapter-footer-id">Chapter 9 of 24</span>
+        </div>
+    </section>
+    
+
+    <section class="chapter-section" id="chapter-10-recruitment-ats">
+        <div class="chapter-header">
+            <div class="chapter-badge">Chapter 10</div>
+            <h2 class="chapter-title">Recruitment & Applicant Tracking System (recruitment)</h2>
+            <p class="chapter-subtitle">Job openings, multi-stage hiring pipelines, resume parsing, interview scorecards, and candidate skill zones.</p>
+        </div>
+        <div class="chapter-body">
+            <h2 id="101-overview-responsibilities">10.1 Overview &amp; Responsibilities</h2>
+<p>The <code>recruitment</code> application delivers an enterprise Applicant Tracking System (ATS). It oversees talent acquisition from vacancy requisition, job posting, and candidate intake to resume parsing, pipeline stage transitions, interview scheduling, scorecard rating, and talent pool archiving.</p>
+<hr>
+<h2 id="102-database-models-specification">10.2 Database Models Specification</h2>
+<table>
+<thead>
+<tr>
+<th>Model Name</th>
+<th>Purpose</th>
+<th>Primary Attributes &amp; Relationships</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Recruitment</code></td>
+<td>Job opening campaign.</td>
+<td><code>recruitment_title</code>, <code>company</code> (FK), <code>department</code> (FK), <code>job_position</code> (FK), <code>open_positions</code>, <code>start_date</code>, <code>end_date</code>, <code>job_description</code>, <code>status</code> (Open/Closed/On Hold)</td>
+</tr>
+<tr>
+<td><code>Stage</code></td>
+<td>Configurable hiring pipeline stages for a recruitment campaign.</td>
+<td><code>recruitment</code> (FK), <code>stage_name</code> (e.g. Applied, Tech Screening, Panel Interview, Offer), <code>sequence_order</code></td>
+</tr>
+<tr>
+<td><code>Candidate</code></td>
+<td>Applicant profile and recruitment progress tracker.</td>
+<td><code>recruitment</code> (FK), <code>stage</code> (FK), <code>first_name</code>, <code>last_name</code>, <code>email</code>, <code>phone</code>, <code>current_ctc</code>, <code>expected_ctc</code>, <code>notice_period_days</code>, <code>status</code></td>
+</tr>
+<tr>
+<td><code>Resume</code></td>
+<td>Candidate resume documents and parsed plain-text representation.</td>
+<td><code>candidate</code> (FK), <code>resume_file</code>, <code>parsed_text</code>, <code>uploaded_at</code></td>
+</tr>
+<tr>
+<td><code>Skill</code> &amp; <code>SkillZone</code></td>
+<td>Skill taxonomy tags and talent pools for future requisition matching.</td>
+<td><code>skill_name</code>, <code>category</code>, <code>candidates</code> (M2M via <code>SkillZoneCandidate</code>)</td>
+</tr>
+<tr>
+<td><code>InterviewSchedule</code></td>
+<td>Scheduled interview rounds with panel links and calendar integrations.</td>
+<td><code>candidate</code> (FK), <code>stage</code> (FK), <code>interview_date</code>, <code>interview_time</code>, <code>interviewers</code> (M2M), <code>meeting_link</code>, <code>status</code></td>
+</tr>
+<tr>
+<td><code>CandidateRating</code></td>
+<td>Interviewer scorecard evaluations, criteria ratings, and comments.</td>
+<td><code>candidate</code> (FK), <code>interview</code> (FK), <code>interviewer</code> (FK), <code>rating</code> (1-5), <code>technical_skills</code>, <code>communication</code>, <code>recommendation</code></td>
+</tr>
+<tr>
+<td><code>CandidateDocumentRequest</code> &amp; <code>CandidateDocument</code></td>
+<td>Pre-offer document requests (degrees, previous pay slips, ID proofs).</td>
+<td><code>candidate</code> (FK), <code>document_title</code>, <code>file</code>, <code>status</code> (Pending/Uploaded/Verified)</td>
+</tr>
+<tr>
+<td><code>RejectReason</code> &amp; <code>RejectedCandidate</code></td>
+<td>Standardized rejection reasons and talent pool archiving.</td>
+<td><code>candidate</code> (FK), <code>reject_reason</code> (FK), <code>rejection_notes</code>, <code>rejected_at</code></td>
+</tr>
+<tr>
+<td><code>RecruitmentSurvey</code> &amp; <code>SurveyTemplate</code></td>
+<td>Candidate candidate-experience feedback surveys.</td>
+<td><code>title</code>, <code>questions</code>, <code>answers</code> (FK to <code>RecruitmentSurveyAnswer</code>)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="103-hiring-pipeline-execution">10.3 Hiring Pipeline Execution</h2>
+<pre><code class="language-text">[Job Requisition: Recruitment]
+              │
+              ▼
+[Candidate Application &amp; Resume Ingestion]
+              │
+              ▼
+[Pipeline Stages: Stage 1 ➔ Stage 2 ➔ Stage 3]
+              │
+    ┌─────────┴─────────┐
+    ▼                   ▼
+[Interview Scheduled]  [Candidate Rating Scorecard]
+    │                   │
+    └─────────┬─────────┘
+              ▼
+[Final Decision] ──► Hired ──► [Handoff to Onboarding]
+                 └──► Rejected ──► [Log RejectReason &amp; Archive]
+</code></pre>
+        </div>
+        <div class="chapter-footer">
+            <a href="#top" class="back-to-top-btn"><i class="fa-solid fa-arrow-up me-1"></i> Back to top</a>
+            <span class="chapter-footer-id">Chapter 10 of 24</span>
+        </div>
+    </section>
+    
+
+    <section class="chapter-section" id="chapter-11-onboarding-module">
+        <div class="chapter-header">
+            <div class="chapter-badge">Chapter 11</div>
+            <h2 class="chapter-title">Employee Onboarding Management (onboarding)</h2>
+            <p class="chapter-subtitle">Pre-boarding portal, onboarding stages, task checklists, document submission, and conversion to employee.</p>
+        </div>
+        <div class="chapter-body">
+            <h2 id="111-overview-responsibilities">11.1 Overview &amp; Responsibilities</h2>
+<p>The <code>onboarding</code> application guides new hires from the moment an offer is accepted until their first 90 days of employment. It provides an external self-service portal where candidates can upload compliance documentation, complete onboarding checklists, and familiarize themselves with company culture prior to day one.</p>
+<hr>
+<h2 id="112-database-models-specification">11.2 Database Models Specification</h2>
+<table>
+<thead>
+<tr>
+<th>Model Name</th>
+<th>Purpose</th>
+<th>Primary Attributes &amp; Relationships</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OnboardingStage</code></td>
+<td>Sequential phases in the onboarding journey.</td>
+<td><code>stage_name</code> (e.g. Pre-boarding, Day 1 Orientation, Week 1 Induction, Probation), <code>sequence_order</code>, <code>company</code> (FK)</td>
+</tr>
+<tr>
+<td><code>OnboardingTask</code></td>
+<td>Reusable checklist tasks assigned to departments or the candidate.</td>
+<td><code>stage</code> (FK), <code>task_title</code>, <code>assigned_department</code> (IT/HR/Finance/Facilities), <code>due_days_from_joining</code>, <code>is_mandatory</code></td>
+</tr>
+<tr>
+<td><code>OnboardingCandidate</code></td>
+<td>Prospective employee record in the onboarding pipeline.</td>
+<td><code>candidate</code> (FK from recruitment), <code>first_name</code>, <code>last_name</code>, <code>email</code>, <code>joining_date</code>, <code>status</code> (In Progress / Completed)</td>
+</tr>
+<tr>
+<td><code>CandidateStage</code></td>
+<td>Tracks a candidate's current stage completion status.</td>
+<td><code>candidate</code> (FK to OnboardingCandidate), <code>stage</code> (FK), <code>is_completed</code>, <code>completed_at</code></td>
+</tr>
+<tr>
+<td><code>CandidateTask</code></td>
+<td>Specific task assignment for an onboarding candidate.</td>
+<td><code>candidate</code> (FK), <code>task</code> (FK to OnboardingTask), <code>status</code> (Pending/In Review/Completed), <code>submitted_file</code>, <code>verified_by</code></td>
+</tr>
+<tr>
+<td><code>OnboardingPortal</code></td>
+<td>Security access tokens for external pre-hire portal access.</td>
+<td><code>candidate</code> (FK), <code>access_token</code>, <code>token_expiry</code>, <code>is_active</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="113-onboarding-lifecycle">11.3 Onboarding Lifecycle</h2>
+<ol>
+<li><strong>Candidate Handoff</strong>: A hired candidate in <code>recruitment</code> is promoted to <code>OnboardingCandidate</code>.</li>
+<li><strong>Pre-Boarding Access</strong>: An <code>OnboardingPortal</code> token is generated and emailed to the candidate. Without requiring full system login, the candidate accesses their private portal to provide bank information, national identity cards, emergency contacts, and signed agreements.</li>
+<li><strong>Cross-Departmental Tasks</strong>: <code>CandidateTask</code> entries are automatically triggered for departmental teams:</li>
+<li><strong>IT</strong>: Configure email account, prepare laptop, allocate software licenses.</li>
+<li><strong>Admin / Facilities</strong>: Issue building access pass and desk allocation.</li>
+<li><strong>HR</strong>: Verify educational credentials, initiate background verification.</li>
+<li><strong>Employee Profile Generation</strong>: Upon completing onboarding stages, a single action creates the permanent <code>Employee</code> profile, <code>EmployeeWorkInformation</code>, and <code>HRMSUser</code> account.</li>
+</ol>
+        </div>
+        <div class="chapter-footer">
+            <a href="#top" class="back-to-top-btn"><i class="fa-solid fa-arrow-up me-1"></i> Back to top</a>
+            <span class="chapter-footer-id">Chapter 11 of 24</span>
+        </div>
+    </section>
+    
+
+    <section class="chapter-section" id="chapter-12-offboarding-exit">
+        <div class="chapter-header">
+            <div class="chapter-badge">Chapter 12</div>
+            <h2 class="chapter-title">Employee Offboarding & Exit Clearance (offboarding)</h2>
+            <p class="chapter-subtitle">Resignations, notice periods, multi-department clearances (IT, HR, Finance), exit interviews, and settlement.</p>
+        </div>
+        <div class="chapter-body">
+            <h2 id="121-overview-responsibilities">12.1 Overview &amp; Responsibilities</h2>
+<p>The <code>offboarding</code> application governs employee separations—voluntary resignations, contract expirations, or terminations. It ensures strict governance across asset recovery, financial settlements, non-disclosure compliance, system de-provisioning, and exit interview analytics.</p>
+<hr>
+<h2 id="122-database-models-specification">12.2 Database Models Specification</h2>
+<table>
+<thead>
+<tr>
+<th>Model Name</th>
+<th>Purpose</th>
+<th>Primary Attributes &amp; Relationships</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ResignationLetter</code></td>
+<td>Formal resignation application submitted by an employee.</td>
+<td><code>employee</code> (FK), <code>resignation_date</code>, <code>requested_last_working_day</code>, <code>reason</code>, <code>status</code> (Requested/Accepted/Withdrawn/Rejected)</td>
+</tr>
+<tr>
+<td><code>Offboarding</code></td>
+<td>Approved separation case governing notice period and clearance.</td>
+<td><code>employee</code> (FK), <code>notice_period_days</code>, <code>approved_last_working_day</code>, <code>exit_reason</code> (FK), <code>status</code> (In Progress/Completed)</td>
+</tr>
+<tr>
+<td><code>OffboardingStage</code></td>
+<td>Departmental clearance checkpoints (IT, Finance, HR, Admin).</td>
+<td><code>stage_name</code>, <code>sequence_order</code>, <code>responsible_department</code> (FK)</td>
+</tr>
+<tr>
+<td><code>OffboardingTask</code></td>
+<td>Specific clearance items required by departments.</td>
+<td><code>stage</code> (FK), <code>task_title</code>, <code>description</code>, <code>is_mandatory</code></td>
+</tr>
+<tr>
+<td><code>EmployeeTask</code></td>
+<td>Individual task assignment and clearance status per exiting employee.</td>
+<td><code>offboarding_employee</code> (FK), <code>task</code> (FK), <code>status</code> (Pending/Cleared/Rejected), <code>cleared_by</code> (FK), <code>clearance_date</code></td>
+</tr>
+<tr>
+<td><code>ExitReason</code></td>
+<td>Standardized separation categories for workforce attrition analytics.</td>
+<td><code>reason_title</code>, <code>category</code> (Career Growth, Compensation, Personal, Relocation)</td>
+</tr>
+<tr>
+<td><code>OffboardingNote</code></td>
+<td>Confidential HR exit interview transcripts and settlement notes.</td>
+<td><code>offboarding</code> (FK), <code>notes</code>, <code>created_by</code> (FK), <code>created_at</code></td>
+</tr>
+<tr>
+<td><code>OffboardingGeneralSetting</code></td>
+<td>Policy parameters for notice period waivers, gratuity rules, and account locking.</td>
+<td><code>auto_lock_account_on_exit</code>, <code>default_notice_days</code>, <code>require_asset_clearance</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="123-multi-department-clearance-workflow">12.3 Multi-Department Clearance Workflow</h2>
+<ol>
+<li><strong>Submission &amp; Acceptance</strong>: Employee submits <code>ResignationLetter</code>. Reporting manager and HR review notice obligations and approve official <code>approved_last_working_day</code>.</li>
+<li><strong>Clearance Checklists</strong>: System spawns clearance tasks across departments:</li>
+<li><strong>IT Department</strong>: Verify return of laptop and peripherals, revoke VPN and corporate email, remove GitHub/Jira access.</li>
+<li><strong>Finance Department</strong>: Calculate remaining loan balances, travel expense claims, and compute Full &amp; Final (F&amp;F) settlement amount.</li>
+<li><strong>HR Department</strong>: Conduct exit interview survey, process leave encashment calculations, prepare Relieving and Experience letters.</li>
+<li><strong>Facilities</strong>: Retrieve physical building access cards and company vehicle keys.</li>
+<li><strong>Archival</strong>: Upon 100% task clearance, the <code>Employee</code> record is marked <code>is_active = False</code> and <code>HRMSUser</code> account is locked.</li>
+</ol>
+        </div>
+        <div class="chapter-footer">
+            <a href="#top" class="back-to-top-btn"><i class="fa-solid fa-arrow-up me-1"></i> Back to top</a>
+            <span class="chapter-footer-id">Chapter 12 of 24</span>
+        </div>
+    </section>
+    
+
+    <section class="chapter-section" id="chapter-13-project-timesheets">
+        <div class="chapter-header">
+            <div class="chapter-badge">Chapter 13</div>
+            <h2 class="chapter-title">Project Management & Timesheets (project)</h2>
+            <p class="chapter-subtitle">Project tracking, Kanban task boards, milestones, and billable hour timesheets.</p>
+        </div>
+        <div class="chapter-body">
+            <h2 id="131-overview-responsibilities">13.1 Overview &amp; Responsibilities</h2>
+<p>The <code>project</code> application provides project tracking and workforce utilization tools directly inside HRMS. Teams can create projects, organize tasks across Kanban stages, assign employees, monitor deadlines, and log daily timesheets for payroll and client billing.</p>
+<hr>
+<h2 id="132-database-models-specification">13.2 Database Models Specification</h2>
+<table>
+<thead>
+<tr>
+<th>Model Name</th>
+<th>Purpose</th>
+<th>Primary Attributes &amp; Relationships</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Project</code></td>
+<td>Master project record.</td>
+<td><code>project_name</code>, <code>company</code> (FK), <code>client_name</code>, <code>project_manager</code> (FK to Employee), <code>start_date</code>, <code>end_date</code>, <code>budget</code>, <code>status</code> (Planning/Active/On Hold/Completed)</td>
+</tr>
+<tr>
+<td><code>ProjectStage</code></td>
+<td>Workflow states for project tasks (e.g. Backlog, In Progress, In Review, Done).</td>
+<td><code>project</code> (FK), <code>stage_name</code>, <code>sequence_order</code></td>
+</tr>
+<tr>
+<td><code>Task</code></td>
+<td>Individual work assignments and deliverables.</td>
+<td><code>project</code> (FK), <code>stage</code> (FK), <code>task_name</code>, <code>assigned_to</code> (M2M to Employee), <code>priority</code> (Low/Medium/High/Urgent), <code>estimated_hours</code>, <code>due_date</code>, <code>status</code></td>
+</tr>
+<tr>
+<td><code>TimeSheet</code></td>
+<td>Daily hours logged by employees against specific tasks and projects.</td>
+<td><code>employee</code> (FK), <code>project</code> (FK), <code>task</code> (FK), <code>date</code>, <code>hours_spent</code>, <code>is_billable</code>, <code>description</code>, <code>status</code> (Draft/Submitted/Approved)</td>
+</tr>
+</tbody>
+</table>
+        </div>
+        <div class="chapter-footer">
+            <a href="#top" class="back-to-top-btn"><i class="fa-solid fa-arrow-up me-1"></i> Back to top</a>
+            <span class="chapter-footer-id">Chapter 13 of 24</span>
+        </div>
+    </section>
+    
+
+    <section class="chapter-section" id="chapter-14-helpdesk-ticketing">
+        <div class="chapter-header">
+            <div class="chapter-badge">Chapter 14</div>
+            <h2 class="chapter-title">Helpdesk & Internal Support Ticketing (helpdesk)</h2>
+            <p class="chapter-subtitle">Internal ticketing system, departmental routing, SLA timers, comments, and knowledge base FAQs.</p>
+        </div>
+        <div class="chapter-body">
+            <h2 id="141-overview-responsibilities">14.1 Overview &amp; Responsibilities</h2>
+<p>The <code>helpdesk</code> module provides an internal support desk where employees submit service requests, report hardware issues, query payroll discrepancies, or resolve policy questions. It includes SLA tracking, departmental routing, two-way threaded discussions, and a self-service FAQ knowledge base.</p>
+<hr>
+<h2 id="142-database-models-specification">14.2 Database Models Specification</h2>
+<table>
+<thead>
+<tr>
+<th>Model Name</th>
+<th>Purpose</th>
+<th>Primary Attributes &amp; Relationships</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TicketType</code></td>
+<td>Ticket classification (e.g. IT Incident, Payroll Query, HR Request, Facilities).</td>
+<td><code>type_name</code>, <code>department</code> (FK), <code>sla_hours</code>, <code>company</code> (FK)</td>
+</tr>
+<tr>
+<td><code>Ticket</code></td>
+<td>Individual support ticket.</td>
+<td><code>ticket_number</code>, <code>employee</code> (FK), <code>ticket_type</code> (FK), <code>title</code>, <code>description</code>, <code>priority</code> (Low/Medium/High/Urgent), <code>status</code> (Open/Assigned/In Progress/Resolved/Closed), <code>assigned_to</code> (FK to Employee)</td>
+</tr>
+<tr>
+<td><code>DepartmentManager</code></td>
+<td>Designates lead support agents responsible for ticket queues per department.</td>
+<td><code>department</code> (FK), <code>manager</code> (FK to Employee), <code>company</code> (FK)</td>
+</tr>
+<tr>
+<td><code>Comment</code></td>
+<td>Threaded discussions between employee and assigned support agents.</td>
+<td><code>ticket</code> (FK), <code>author</code> (FK to User), <code>comment_text</code>, <code>is_internal_note</code>, <code>created_at</code></td>
+</tr>
+<tr>
+<td><code>Attachment</code></td>
+<td>File attachments (screenshots, logs, error reports) linked to tickets.</td>
+<td><code>ticket</code> (FK), <code>attachment_file</code>, <code>uploaded_at</code></td>
+</tr>
+<tr>
+<td><code>ClaimRequest</code></td>
+<td>Specific financial or resource claims associated with a ticket.</td>
+<td><code>ticket</code> (FK), <code>claim_amount</code>, <code>claim_reason</code>, <code>status</code></td>
+</tr>
+<tr>
+<td><code>FAQCategory</code> &amp; <code>FAQ</code></td>
+<td>Self-service articles answering common employee questions.</td>
+<td><code>category</code> (FK), <code>question</code>, <code>answer_html</code>, <code>is_published</code></td>
+</tr>
+</tbody>
+</table>
+        </div>
+        <div class="chapter-footer">
+            <a href="#top" class="back-to-top-btn"><i class="fa-solid fa-arrow-up me-1"></i> Back to top</a>
+            <span class="chapter-footer-id">Chapter 14 of 24</span>
+        </div>
+    </section>
+    
+
+    <section class="chapter-section" id="chapter-15-reporting-bi">
+        <div class="chapter-header">
+            <div class="chapter-badge">Chapter 15</div>
+            <h2 class="chapter-title">Reporting & Business Intelligence Engine (report)</h2>
+            <p class="chapter-subtitle">Dynamic report builder, scheduled email subscriptions, saved views, and multi-format exports (CSV, Excel, PDF).</p>
+        </div>
+        <div class="chapter-body">
+            <h2 id="151-overview-responsibilities">15.1 Overview &amp; Responsibilities</h2>
+<p>The <code>report</code> application provides comprehensive cross-module analytics. HR directors and executive leadership can generate real-time metrics on headcount distribution, attrition trends, attendance punctuality, leave utilization, asset allocations, and payroll expenditures.</p>
+<hr>
+<h2 id="152-database-models-specification">15.2 Database Models Specification</h2>
+<table>
+<thead>
+<tr>
+<th>Model Name</th>
+<th>Purpose</th>
+<th>Primary Attributes &amp; Relationships</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ReportTemplate</code></td>
+<td>Pre-configured or custom query definitions for specific modules.</td>
+<td><code>template_name</code>, <code>module</code> (Employee/Attendance/Leave/Payroll/Asset), <code>selected_fields</code>, <code>filter_criteria</code></td>
+</tr>
+<tr>
+<td><code>ReportSubscription</code></td>
+<td>Scheduled automated report delivery to managers' emails.</td>
+<td><code>template</code> (FK), <code>recipient_emails</code>, <code>frequency</code> (Daily/Weekly/Monthly), <code>export_format</code> (CSV/Excel/PDF), <code>is_active</code></td>
+</tr>
+<tr>
+<td><code>ReportFavorite</code></td>
+<td>Personal pinned reports for quick access on user dashboards.</td>
+<td><code>user</code> (FK), <code>template</code> (FK)</td>
+</tr>
+<tr>
+<td><code>ReportSavedView</code></td>
+<td>User-customized column sets, sorting rules, and filter presets.</td>
+<td><code>template</code> (FK), <code>user</code> (FK), <code>view_name</code>, <code>column_configuration</code></td>
+</tr>
+<tr>
+<td><code>ReportRunLog</code></td>
+<td>Audit log tracking report execution duration, record counts, and user identity.</td>
+<td><code>template</code> (FK), <code>executed_by</code> (FK), <code>executed_at</code>, <code>duration_seconds</code>, <code>rows_count</code></td>
+</tr>
+<tr>
+<td><code>ReportAccess</code></td>
+<td>Role-based permission controls dictating who can run sensitive financial reports.</td>
+<td><code>template</code> (FK), <code>allowed_roles</code> (M2M), <code>allowed_departments</code> (M2M)</td>
+</tr>
+</tbody>
+</table>
+        </div>
+        <div class="chapter-footer">
+            <a href="#top" class="back-to-top-btn"><i class="fa-solid fa-arrow-up me-1"></i> Back to top</a>
+            <span class="chapter-footer-id">Chapter 15 of 24</span>
+        </div>
+    </section>
+    
+
+    <section class="chapter-section" id="chapter-16-rest-api-swagger">
+        <div class="chapter-header">
+            <div class="chapter-badge">Chapter 16</div>
+            <h2 class="chapter-title">RESTful API Architecture & Interactive Swagger UI (hrms_api)</h2>
+            <p class="chapter-subtitle">Django REST Framework endpoints, SimpleJWT bearer tokens, Swagger UI, ReDoc, and module serializers.</p>
+        </div>
+        <div class="chapter-body">
+            <h2 id="161-overview-architecture">16.1 Overview &amp; Architecture</h2>
+<p>The <code>hrms_api</code> application exposes secure RESTful endpoints for integration with mobile applications, corporate portals, and third-party systems. Built with Django REST Framework (DRF) and <code>drf_yasg</code>, it provides full OpenAPI 3.0 interactive documentation via Swagger UI (<code>/api/v1/swagger/</code>) and ReDoc (<code>/api/v1/redoc/</code>).</p>
+<hr>
+<h2 id="162-authentication-security">16.2 Authentication &amp; Security</h2>
+<ul>
+<li><strong>JWT Authentication</strong>: Clients obtain JSON Web Token pairs via <code>/api/v1/auth/token/</code> and refresh via <code>/api/v1/auth/token/refresh/</code>.</li>
+<li><strong>Bearer Token Header</strong>: All subsequent API calls require:
+  <code>http
+  Authorization: Bearer &lt;jwt_access_token&gt;</code></li>
+<li><strong>Permission Classes</strong>: Endpoints enforce <code>IsAuthenticated</code> alongside granular role checks. Managerial endpoints enforce custom permissions returning HTTP 403 Forbidden for unauthorized tiers.</li>
+</ul>
+<hr>
+<h2 id="163-module-api-coverage-matrix">16.3 Module API Coverage Matrix</h2>
+<p>The API encompasses 14 dedicated packages under <code>hrms_api/api_urls/</code>:</p>
+<table>
+<thead>
+<tr>
+<th>API Domain</th>
+<th>Base Endpoint</th>
+<th>Key Operations</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Auth</strong></td>
+<td><code>/api/v1/auth/</code></td>
+<td>Token obtain, token refresh, password reset, user profile</td>
+</tr>
+<tr>
+<td><strong>Base</strong></td>
+<td><code>/api/v1/base/</code></td>
+<td>Companies, departments, job positions, shifts, work types</td>
+</tr>
+<tr>
+<td><strong>Employee</strong></td>
+<td><code>/api/v1/employee/</code></td>
+<td>Employee CRUD, work info, bank details, emergency contacts</td>
+</tr>
+<tr>
+<td><strong>Attendance</strong></td>
+<td><code>/api/v1/attendance/</code></td>
+<td>Clock-in, clock-out, attendance validation, overtime requests</td>
+</tr>
+<tr>
+<td><strong>Leave</strong></td>
+<td><code>/api/v1/leave/</code></td>
+<td>Leave types, available balances, request submissions, approvals</td>
+</tr>
+<tr>
+<td><strong>Payroll</strong></td>
+<td><code>/api/v1/payroll/</code></td>
+<td>Contracts, salary structures, payslip queries, expense claims</td>
+</tr>
+<tr>
+<td><strong>PMS</strong></td>
+<td><code>/api/v1/pms/</code></td>
+<td>OKRs, objectives, key results, 360 feedback submissions</td>
+</tr>
+<tr>
+<td><strong>Asset</strong></td>
+<td><code>/api/v1/asset/</code></td>
+<td>Asset catalog, asset items, assignment history, asset requests</td>
+</tr>
+<tr>
+<td><strong>Recruitment</strong></td>
+<td><code>/api/v1/recruitment/</code></td>
+<td>Openings, candidates, interview schedules, candidate ratings</td>
+</tr>
+<tr>
+<td><strong>Onboarding</strong></td>
+<td><code>/api/v1/onboarding/</code></td>
+<td>Onboarding candidates, task lists, portal submissions</td>
+</tr>
+<tr>
+<td><strong>Offboarding</strong></td>
+<td><code>/api/v1/offboarding/</code></td>
+<td>Resignation requests, departmental clearance checklists</td>
+</tr>
+<tr>
+<td><strong>Project</strong></td>
+<td><code>/api/v1/project/</code></td>
+<td>Projects, tasks, stages, timesheet logging</td>
+</tr>
+<tr>
+<td><strong>Helpdesk</strong></td>
+<td><code>/api/v1/helpdesk/</code></td>
+<td>Tickets, comments, ticket types, attachments</td>
+</tr>
+<tr>
+<td><strong>Notifications</strong></td>
+<td><code>/api/v1/notifications/</code></td>
+<td>Unread notifications, mark-as-read, user broadcasts</td>
+</tr>
+</tbody>
+</table>
+        </div>
+        <div class="chapter-footer">
+            <a href="#top" class="back-to-top-btn"><i class="fa-solid fa-arrow-up me-1"></i> Back to top</a>
+            <span class="chapter-footer-id">Chapter 16 of 24</span>
+        </div>
+    </section>
+    
+
+    <section class="chapter-section" id="chapter-17-auth-security-permissions">
+        <div class="chapter-header">
+            <div class="chapter-badge">Chapter 17</div>
+            <h2 class="chapter-title">Enterprise Authentication, RBAC & Security (hrms_auth, base)</h2>
+            <p class="chapter-subtitle">Custom user models, role-based access control (RBAC), two-factor authentication (2FA), and session protection.</p>
+        </div>
+        <div class="chapter-body">
+            <h2 id="171-overview-responsibilities">17.1 Overview &amp; Responsibilities</h2>
+<p>HRMS implements enterprise-grade identity and access governance via <code>hrms_auth</code>. It supports username or corporate email login, multi-company role assignments, TOTP two-factor authentication, forced password rotation, and active session protection.</p>
+<hr>
+<h2 id="172-database-models-user-architecture">17.2 Database Models &amp; User Architecture</h2>
+<ul>
+<li><code>HRMSUser</code>: Primary authentication model extending <code>AbstractUser</code>. Attributes: <code>email</code> (unique index), <code>username</code>, <code>phone</code>, <code>is_verified</code>, <code>two_factor_enabled</code>, <code>force_password_change</code>, <code>company</code> (FK).</li>
+<li><code>LegacyUser</code>: Migration bridge preserving backward compatibility with legacy authentication systems.</li>
+<li><code>AuthUserGroups</code> &amp; <code>AuthUserUserPermissions</code>: Scoped permission mappings associating users with granular roles within their specific operating company.</li>
+</ul>
+<hr>
+<h2 id="173-security-defenses-hardening">17.3 Security Defenses &amp; Hardening</h2>
+<ol>
+<li><strong>Two-Factor Authentication (2FA)</strong>: Generates standard TOTP secrets compatible with Google Authenticator or Microsoft Authenticator. Mandatory for payroll and administrative roles.</li>
+<li><strong>Brute Force Protection</strong>: Failed login tracking locks accounts after configurable attempts, logging the event in <code>hrms_audit.AccountBlockUnblock</code>.</li>
+<li><strong>SVG &amp; File Sanitization</strong>: <code>SVGSecurityMiddleware</code> strips executable scripts from XML-based image files to eliminate SVG XSS vectors.</li>
+<li><strong>Session Expiry &amp; CSRF</strong>: Secure, HTTP-only session cookies with strict SameSite attributes and mandatory CSRF token verification on all POST/PUT/DELETE requests.</li>
+</ol>
+        </div>
+        <div class="chapter-footer">
+            <a href="#top" class="back-to-top-btn"><i class="fa-solid fa-arrow-up me-1"></i> Back to top</a>
+            <span class="chapter-footer-id">Chapter 17 of 24</span>
+        </div>
+    </section>
+    
+
+    <section class="chapter-section" id="chapter-18-audit-compliance">
+        <div class="chapter-header">
+            <div class="chapter-badge">Chapter 18</div>
+            <h2 class="chapter-title">Audit Trails & Regulatory Compliance (hrms_audit)</h2>
+            <p class="chapter-subtitle">Complete changelog tracking, field-level diffs, audit tags, and user block/unblock logs via django-auditlog.</p>
+        </div>
+        <div class="chapter-body">
+            <h2 id="181-overview-responsibilities">18.1 Overview &amp; Responsibilities</h2>
+<p>The <code>hrms_audit</code> application provides complete regulatory compliance and non-repudiation tracking. Integrated with <code>django-auditlog</code> and <code>simple_history</code>, every data modification across sensitive entities (contracts, wages, employee records, attendance punches, and leave approvals) is archived with timestamps, user IDs, IP addresses, and before-and-after diffs.</p>
+<hr>
+<h2 id="182-database-models-specification">18.2 Database Models Specification</h2>
+<table>
+<thead>
+<tr>
+<th>Model Name</th>
+<th>Purpose</th>
+<th>Primary Attributes &amp; Relationships</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>HRMSAuditLog</code></td>
+<td>Master changelog recording entity state mutations.</td>
+<td><code>content_type</code>, <code>object_id</code>, <code>actor</code> (FK to User), <code>action</code> (Create/Update/Delete), <code>changes_json</code>, <code>timestamp</code>, <code>ip_address</code></td>
+</tr>
+<tr>
+<td><code>HRMSAuditInfo</code></td>
+<td>Operational classification and context attached to audit entries.</td>
+<td><code>audit_log</code> (FK), <code>module_name</code>, <code>severity</code> (Low/Medium/High/Critical), <code>action_description</code></td>
+</tr>
+<tr>
+<td><code>AuditTag</code></td>
+<td>Categorical tags (e.g. "Salary Revision", "Manual Attendance Punch", "Security Alert").</td>
+<td><code>tag_name</code>, <code>color_code</code></td>
+</tr>
+<tr>
+<td><code>HistoryTrackingFields</code></td>
+<td>Dynamic configuration specifying which model fields trigger audit tracking.</td>
+<td><code>model_name</code>, <code>tracked_fields_list</code>, <code>is_active</code></td>
+</tr>
+<tr>
+<td><code>AccountBlockUnblock</code></td>
+<td>Audit records of user accounts locked due to failed logins or admin actions.</td>
+<td><code>user</code> (FK), <code>action</code> (Blocked/Unblocked), <code>reason</code>, <code>action_by</code> (FK), <code>timestamp</code></td>
+</tr>
+</tbody>
+</table>
+        </div>
+        <div class="chapter-footer">
+            <a href="#top" class="back-to-top-btn"><i class="fa-solid fa-arrow-up me-1"></i> Back to top</a>
+            <span class="chapter-footer-id">Chapter 18 of 24</span>
+        </div>
+    </section>
+    
+
+    <section class="chapter-section" id="chapter-19-automations-notifications">
+        <div class="chapter-header">
+            <div class="chapter-badge">Chapter 19</div>
+            <h2 class="chapter-title">Automations, Notifications & Scheduled Tasks (hrms_automations, notifications)</h2>
+            <p class="chapter-subtitle">Event-driven email automations, background cron processing via APScheduler, and real-time in-app alerts.</p>
+        </div>
+        <div class="chapter-body">
+            <h2 id="191-overview-responsibilities">19.1 Overview &amp; Responsibilities</h2>
+<p>The <code>hrms_automations</code> and <code>notifications</code> modules eliminate manual overhead through event triggers, automated notifications, and scheduled background tasks.</p>
+<hr>
+<h2 id="192-database-models-features">19.2 Database Models &amp; Features</h2>
+<ul>
+<li><code>MailAutomation</code>: Event-driven rules linking system triggers (e.g. On Employee Creation, Contract Expiration, Birthday, Work Anniversary) to dynamic HTML mail templates.</li>
+<li><code>Notification</code>: In-app notification center recording alerts, approval requests, and announcements with unread counter badges.</li>
+<li><code>django-apscheduler</code>: Background task scheduler executing recurring operations:</li>
+<li>Daily attendance aggregation and hours compilation.</li>
+<li>Nightly contract expiration scans with warning alerts to HR.</li>
+<li>Scheduled automated monthly payroll batch runs.</li>
+<li>Periodic database backups and cloud sync.</li>
+</ul>
+        </div>
+        <div class="chapter-footer">
+            <a href="#top" class="back-to-top-btn"><i class="fa-solid fa-arrow-up me-1"></i> Back to top</a>
+            <span class="chapter-footer-id">Chapter 19 of 24</span>
+        </div>
+    </section>
+    
+
+    <section class="chapter-section" id="chapter-20-documents-templates">
+        <div class="chapter-header">
+            <div class="chapter-badge">Chapter 20</div>
+            <h2 class="chapter-title">Document Generation & Database Templates (hrms_documents, hrms_dbtemplate)</h2>
+            <p class="chapter-subtitle">Dynamic rich-text letter templates, merge tags, document requests, and automated PDF letter generation.</p>
+        </div>
+        <div class="chapter-body">
+            <h2 id="201-overview-responsibilities">20.1 Overview &amp; Responsibilities</h2>
+<p>The <code>hrms_documents</code> and <code>hrms_dbtemplate</code> applications automate the authoring and issuance of corporate letters, agreements, and certificates.</p>
+<hr>
+<h2 id="202-database-models-features">20.2 Database Models &amp; Features</h2>
+<ul>
+<li><code>Template</code> &amp; <code>TemplateVersion</code>: Rich-text letter templates (Offer Letters, Experience Certificates, Non-Disclosure Agreements, Salary Certificates) with version control.</li>
+<li><strong>Dynamic Merge Variables</strong>: Placeholders such as <code>{{employee_name}}</code>, <code>{{job_title}}</code>, <code>{{company_name}}</code>, and <code>{{salary_ctc}}</code> are interpolated with live database values at runtime.</li>
+<li><code>DocumentRequest</code>: Employee self-service requests for formal letters, approval workflow, automated PDF generation, and archive downloads.</li>
+</ul>
+        </div>
+        <div class="chapter-footer">
+            <a href="#top" class="back-to-top-btn"><i class="fa-solid fa-arrow-up me-1"></i> Back to top</a>
+            <span class="chapter-footer-id">Chapter 20 of 24</span>
+        </div>
+    </section>
+    
+
+    <section class="chapter-section" id="chapter-21-backup-disaster-recovery">
+        <div class="chapter-header">
+            <div class="chapter-badge">Chapter 21</div>
+            <h2 class="chapter-title">Database Backup & Disaster Recovery (hrms_backup, pg_backup)</h2>
+            <p class="chapter-subtitle">Automated and on-demand PostgreSQL database dumps, local encryption, and Google Drive cloud archives.</p>
+        </div>
+        <div class="chapter-body">
+            <h2 id="211-overview-responsibilities">21.1 Overview &amp; Responsibilities</h2>
+<p>The <code>hrms_backup</code> and <code>pg_backup</code> applications provide data protection and disaster recovery for PostgreSQL databases.</p>
+<hr>
+<h2 id="212-features-models">21.2 Features &amp; Models</h2>
+<ul>
+<li><code>LocalBackup</code>: Automated or manual execution of PostgreSQL <code>pg_dump</code> snapshots stored in timestamped, encrypted local volumes.</li>
+<li><code>GoogleDriveBackup</code>: Remote off-site backup synchronization utilizing Google Drive API service credentials.</li>
+<li><strong>One-Click Restoration</strong>: Web-based database restoration interface with automated connection termination and integrity checks.</li>
+</ul>
+        </div>
+        <div class="chapter-footer">
+            <a href="#top" class="back-to-top-btn"><i class="fa-solid fa-arrow-up me-1"></i> Back to top</a>
+            <span class="chapter-footer-id">Chapter 21 of 24</span>
+        </div>
+    </section>
+    
+
+    <section class="chapter-section" id="chapter-22-external-integrations">
+        <div class="chapter-header">
+            <div class="chapter-badge">Chapter 22</div>
+            <h2 class="chapter-title">External Enterprise Integrations (WhatsApp, LDAP, Outlook, Meet)</h2>
+            <p class="chapter-subtitle">WhatsApp Business API messaging, Active Directory LDAP directory sync, Microsoft Outlook SSO, and Google Meet.</p>
+        </div>
+        <div class="chapter-body">
+            <h2 id="221-whatsapp-business-integration-whatsapp">22.1 WhatsApp Business Integration (<code>whatsapp</code>)</h2>
+<ul>
+<li><strong>Models</strong>: <code>WhatsappCredientials</code>, <code>WhatsappFlowDetails</code>.</li>
+<li><strong>Functionality</strong>: Integrates with the Meta WhatsApp Business API to dispatch instant transactional alerts (shift assignment notices, interview confirmations, leave request updates).</li>
+</ul>
+<h2 id="222-enterprise-directory-ldap-synchronization-hrms_ldap">22.2 Enterprise Directory / LDAP Synchronization (<code>hrms_ldap</code>)</h2>
+<ul>
+<li><strong>Models</strong>: <code>LDAPSettings</code>.</li>
+<li><strong>Functionality</strong>: Binds to corporate Active Directory or OpenLDAP servers for centralized authentication, user account provisioning, and group-to-role mappings.</li>
+</ul>
+<h2 id="223-microsoft-outlook-oauth-single-sign-on-outlook_auth">22.3 Microsoft Outlook OAuth Single Sign-On (<code>outlook_auth</code>)</h2>
+<ul>
+<li><strong>Models</strong>: <code>AzureApi</code>.</li>
+<li><strong>Functionality</strong>: Implements Microsoft Entra ID (Azure AD) OAuth 2.0 Single Sign-On, enabling enterprise users to authenticate with corporate Microsoft 365 accounts.</li>
+</ul>
+<h2 id="224-hrms-meet-video-conferencing-hrms_meet">22.4 HRMS Meet Video Conferencing (<code>hrms_meet</code>)</h2>
+<ul>
+<li><strong>Models</strong>: <code>GoogleCloudCredential</code>, <code>GoogleCredential</code>, <code>GoogleMeeting</code>.</li>
+<li><strong>Functionality</strong>: Integrates with Google Workspace APIs to generate Google Meet interview video rooms automatically upon interview scheduling.</li>
+</ul>
+        </div>
+        <div class="chapter-footer">
+            <a href="#top" class="back-to-top-btn"><i class="fa-solid fa-arrow-up me-1"></i> Back to top</a>
+            <span class="chapter-footer-id">Chapter 22 of 24</span>
+        </div>
+    </section>
+    
+
+    <section class="chapter-section" id="chapter-23-ui-ux-accessibility">
+        <div class="chapter-header">
+            <div class="chapter-badge">Chapter 23</div>
+            <h2 class="chapter-title">UI/UX, Dynamic Themes, Guided Tours & Accessibility</h2>
+            <p class="chapter-subtitle">White-label theme engine, WCAG accessibility controls, interactive product tours, dynamic fields, and widgets.</p>
+        </div>
+        <div class="chapter-body">
+            <h2 id="231-dynamic-theme-engine-hrms_theme">23.1 Dynamic Theme Engine (<code>hrms_theme</code>)</h2>
+<ul>
+<li><strong>Models</strong>: <code>HRMSColorTheme</code>, <code>CompanyTheme</code>.</li>
+<li><strong>Functionality</strong>: Dynamic white-label branding allowing each corporate tenant to upload logos, select primary/secondary brand palettes, and style the navigation sidebar.</li>
+</ul>
+<h2 id="232-wcag-accessibility-accessibility">23.2 WCAG Accessibility (<code>accessibility</code>)</h2>
+<ul>
+<li><strong>Models</strong>: <code>DefaultAccessibility</code>.</li>
+<li><strong>Functionality</strong>: Built-in accessibility toolset offering high-contrast color modes, text resizing, and OpenDyslexic font toggles for inclusive usability.</li>
+</ul>
+<h2 id="233-interactive-guided-tours-hrms_tour">23.3 Interactive Guided Tours (<code>hrms_tour</code>)</h2>
+<ul>
+<li><strong>Models</strong>: <code>Tour</code>, <code>TourStep</code>, <code>TourProgress</code>.</li>
+<li><strong>Functionality</strong>: Interactive, step-by-step walkthroughs powered by <code>tourController.js</code> that guide newly provisioned employees and managers through features.</li>
+</ul>
+<h2 id="234-dynamic-fields-engine-dynamic_fields">23.4 Dynamic Fields Engine (<code>dynamic_fields</code>)</h2>
+<ul>
+<li><strong>Models</strong>: <code>Choice</code>, <code>DynamicField</code>.</li>
+<li><strong>Functionality</strong>: Allows administrators to attach custom attributes (text, number, date, dropdowns) to core models at runtime without writing migrations.</li>
+</ul>
+<h2 id="235-dynamic-views-widgets-hrms_views-hrms_widgets-hrms_crumbs">23.5 Dynamic Views &amp; Widgets (<code>hrms_views</code>, <code>hrms_widgets</code>, <code>hrms_crumbs</code>)</h2>
+<ul>
+<li>Configurable table columns, drag-and-drop column orders, saved search filters, customizable dashboard widgets, and breadcrumb trails.</li>
+</ul>
+        </div>
+        <div class="chapter-footer">
+            <a href="#top" class="back-to-top-btn"><i class="fa-solid fa-arrow-up me-1"></i> Back to top</a>
+            <span class="chapter-footer-id">Chapter 23 of 24</span>
+        </div>
+    </section>
+    
+
+    <section class="chapter-section" id="chapter-24-devops-deployment">
+        <div class="chapter-header">
+            <div class="chapter-badge">Chapter 24</div>
+            <h2 class="chapter-title">DevOps, Containerization & Production Deployment</h2>
+            <p class="chapter-subtitle">Docker multi-stage builds, Docker Compose, Nginx reverse proxy, PostgreSQL, health probes, and CI/CD.</p>
+        </div>
+        <div class="chapter-body">
+            <h2 id="241-container-architecture-multi-stage-dockerfile">24.1 Container Architecture &amp; Multi-Stage Dockerfile</h2>
+<p>The HRMS container build leverages a hardened, multi-stage Debian-based Python 3.12 environment with essential system libraries for OpenCV (face detection), WeasyPrint (PDF generation), PostgreSQL client libraries, and LDAP development tools:</p>
+<pre><code class="language-dockerfile"># Multi-stage production build summary
+FROM python:3.12-slim AS builder
+RUN apt-get update &amp;&amp; apt-get install -y --no-install-recommends     build-essential libpq-dev libldap2-dev libsasl2-dev ...
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+</code></pre>
+<hr>
+<h2 id="242-docker-compose-configuration">24.2 Docker Compose Configuration</h2>
+<h3 id="1-development-stack-docker-composeyml">1. Development Stack (<code>docker-compose.yml</code>)</h3>
+<ul>
+<li>Binds project source code directly into <code>/app/</code> for live hot-reloading.</li>
+<li>Runs PostgreSQL 16 on port 5432 and Redis 7 on port 6379.</li>
+<li>Exposes web service at <code>http://127.0.0.1:8080</code>.</li>
+</ul>
+<h3 id="2-production-stack-docker-composeprodyml">2. Production Stack (<code>docker-compose.prod.yml</code>)</h3>
+<ul>
+<li>Deploys Nginx as the front-facing reverse proxy handling TLS and static file delivery.</li>
+<li>Runs Gunicorn with multiple worker processes.</li>
+<li>Mounts persistent Docker volumes (<code>postgres_data</code>, <code>redis_data</code>, <code>media_volume</code>).</li>
+</ul>
+<hr>
+<h2 id="243-health-probes-monitoring">24.3 Health Probes &amp; Monitoring</h2>
+<p>The system exposes two dedicated endpoints in <code>hrms/urls.py</code>:
+- <code>/health/</code>: Cheap liveness probe verifying that the application process is alive (used by Docker HEALTHCHECK).
+- <code>/ready/</code>: Deep readiness probe verifying active connectivity to PostgreSQL and Redis cache read/write capability before routing traffic.</p>
+<hr>
+<h2 id="244-continuous-integration-github-actions">24.4 Continuous Integration &amp; GitHub Actions</h2>
+<p>Automated CI/CD workflows under <code>.github/workflows/</code> execute on every push:
+1. <strong>Linting &amp; Code Style</strong>: Enforces PEP 8 standards with Flake8 and Black.
+2. <strong>Unit &amp; Integration Tests</strong>: Runs Django test suites across core applications.
+3. <strong>Container Build Verification</strong>: Verifies clean Docker container packaging and health probe responses.</p>
+        </div>
+        <div class="chapter-footer">
+            <a href="#top" class="back-to-top-btn"><i class="fa-solid fa-arrow-up me-1"></i> Back to top</a>
+            <span class="chapter-footer-id">Chapter 24 of 24</span>
+        </div>
+    </section>
+    
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Reading Progress Bar
+        window.addEventListener('scroll', () => {
+            const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('scroll-progress').style.width = scrolled + '%';
+        });
+
+        // Theme Toggle
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeIcon = themeToggleBtn.querySelector('i');
+        const currentTheme = localStorage.getItem('hrms-doc-theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        updateThemeIcon(currentTheme);
+
+        themeToggleBtn.addEventListener('click', () => {
+            const activeTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = activeTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('hrms-doc-theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            if (theme === 'dark') {
+                themeIcon.className = 'fa-solid fa-moon';
+            } else {
+                themeIcon.className = 'fa-solid fa-sun';
+            }
+        }
+
+        // Mobile Menu Toggle
+        const mobileToggle = document.getElementById('mobile-toggle');
+        const sidebar = document.getElementById('sidebar');
+        mobileToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('mobile-open');
+        });
+
+        // Search Filter in Sidebar
+        const searchInput = document.getElementById('chapter-search');
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                const text = item.innerText.toLowerCase();
+                if (text.includes(query)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // Add Copy Button to all pre/code blocks
+        document.querySelectorAll('pre').forEach(pre => {
+            const btn = document.createElement('button');
+            btn.className = 'copy-btn';
+            btn.innerHTML = '<i class="fa-regular fa-copy me-1"></i> Copy';
+            btn.addEventListener('click', () => {
+                const code = pre.querySelector('code') ? pre.querySelector('code').innerText : pre.innerText;
+                navigator.clipboard.writeText(code).then(() => {
+                    btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Copied!';
+                    setTimeout(() => {
+                        btn.innerHTML = '<i class="fa-regular fa-copy me-1"></i> Copy';
+                    }, 2000);
+                });
+            });
+            pre.appendChild(btn);
+        });
+
+        // Scrollspy for Sidebar Links
+        const sections = document.querySelectorAll('.chapter-section');
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        window.addEventListener('scroll', () => {
+            let currentId = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 120;
+                if (pageYOffset >= sectionTop) {
+                    currentId = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + currentId) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

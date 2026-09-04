@@ -64,6 +64,11 @@
                     {% endif %}
                 {% endif %}
             {% endif %}
-        {% endif %}
     {% endwith %}
 {% endif %}
+
+<script>
+    if ($("#reloadMessagesButton").length) {
+        $("#reloadMessagesButton").click();
+    }
+</script>

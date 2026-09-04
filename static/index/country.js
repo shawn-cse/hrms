@@ -287,7 +287,7 @@ s_a[16] =
 s_a[17] =
     "Al Hadd|Al Manamah|Al Mintaqah al Gharbiyah|Al Mintaqah al Wusta|Al Mintaqah ash Shamaliyah|Al Muharraq|Ar Rifa' wa al Mintaqah al Janubiyah|Jidd Hafs|Juzur Hawar|Madinat 'Isa|Madinat Hamad|Sitrah";
 s_a[18] =
-    "Barguna|Barisal|Bhola|Jhalokati|Patuakhali|Pirojpur|Bandarban|Brahmanbaria|Chandpur|Chittagong|Comilla|Cox's Bazar|Feni|Khagrachari|Lakshmipur|Noakhali|Rangamati|Dhaka|Faridpur|Gazipur|Gopalganj|Jamalpur|Kishoreganj|Madaripur|Manikganj|Munshiganj|Mymensingh|Narayanganj|Narsingdi|Netrokona|Rajbari|Shariatpur|Sherpur|Tangail|Bagerhat|Chuadanga|Jessore|Jhenaidah|Khulna|Kushtia|Magura|Meherpur|Narail|Satkhira|Bogra|Dinajpur|Gaibandha|Jaipurhat|Kurigram|Lalmonirhat|Naogaon|Natore|Nawabganj|Nilphamari|Pabna|Panchagarh|Rajshahi|Rangpur|Sirajganj|Thakurgaon|Habiganj|Maulvi bazar|Sunamganj|Sylhet";
+    "Dhaka|Chattogram (Chittagong)|Rajshahi|Khulna|Barishal (Barisal)|Sylhet|Rangpur|Mymensingh|Bagerhat|Bandarban|Barguna|Barisal|Bhola|Bogra|Brahmanbaria|Chandpur|Chapainawabganj|Chittagong|Chuadanga|Comilla (Cumilla)|Cox's Bazar|Dhaka|Dinajpur|Faridpur|Feni|Gaibandha|Gazipur|Gopalganj|Habiganj|Jamalpur|Jashore (Jessore)|Jhalokati|Jhenaidah|Joypurhat|Khagrachhari|Khulna|Kishoreganj|Kurigram|Kushtia|Lakshmipur|Lalmonirhat|Madaripur|Magura|Manikganj|Meherpur|Moulvibazar|Munshiganj|Mymensingh|Naogaon|Narail|Narayanganj|Narsingdi|Natore|Netrokona|Nilphamari|Noakhali|Pabna|Panchagarh|Patuakhali|Pirojpur|Rajbari|Rajshahi|Rangamati|Rangpur|Satkhira|Shariatpur|Sherpur|Sirajganj|Sunamganj|Sylhet|Tangail|Thakurgaon";
 s_a[19] =
     "Bridgetown|Christ Church|Saint Andrew|Saint George|Saint James|Saint John|Saint Joseph|Saint Lucy|Saint Michael|Saint Peter|Saint Philip|Saint Thomas";
 s_a[20] =
@@ -693,30 +693,81 @@ function countryI18n(text) {
     return typeof gettext === "function" ? gettext(text) : text;
 }
 
+function refreshSelect2(el, isState) {
+    if (!el) return;
+    if (window.jQuery) {
+        var $el = window.jQuery(el);
+        var wantsTags = !!isState;
+        if ($el.data("select2")) {
+            // If it's a state field and tags wasn't enabled, reinitialize with tags: true
+            if (wantsTags && (!$el.data("select2").options || !$el.data("select2").options.options.tags)) {
+                $el.select2("destroy");
+                $el.select2({
+                    tags: true,
+                    placeholder: countryI18n("Select or type State"),
+                    allowClear: true,
+                    width: "100%",
+                });
+            } else {
+                $el.trigger("change.select2");
+            }
+        } else if ($el.hasClass("oh-select-2") || $el.hasClass("select2-hidden-accessible")) {
+            if (wantsTags) {
+                $el.select2({
+                    tags: true,
+                    placeholder: countryI18n("Select or type State"),
+                    allowClear: true,
+                    width: "100%",
+                });
+            } else {
+                $el.select2({
+                    width: "100%",
+                });
+            }
+        }
+    }
+}
+
 function populateStates(countryElementId, stateElementId) {
     var countryEl = document.getElementById(countryElementId);
     var stateEl = document.getElementById(stateElementId);
 
     if (!countryEl || !stateEl) return;  // Prevents null access
     var selectedCountryIndex = countryEl.selectedIndex;
-    var selectedState = stateEl.getAttribute('data-selected') || '';
+    var selectedState = stateEl.getAttribute('data-selected') || stateEl.value || '';
 
     stateEl.length = 0;
     stateEl.options[0] = new Option(countryI18n("Select State"), "");
     stateEl.selectedIndex = 0;
 
+    var foundSelected = false;
     if (s_a[selectedCountryIndex]) {
         var state_arr = s_a[selectedCountryIndex].split("|");
         for (var i = 0; i < state_arr.length; i++) {
             let stateValue = state_arr[i].replace(/'/g, '`');
             let option = new Option(state_arr[i], stateValue);
-            if (selectedState && selectedState === stateValue) {
+            if (selectedState && selectedState.trim().toLowerCase() === stateValue.trim().toLowerCase()) {
                 option.selected = true;
+                foundSelected = true;
             }
             stateEl.options[stateEl.length] = option;
         }
     }
-    refreshSelect2(stateEl);
+    // If user previously selected or typed a custom state not in predefined list, retain it!
+    if (selectedState && !foundSelected && selectedState.trim() !== "") {
+        let customOption = new Option(selectedState, selectedState, true, true);
+        stateEl.options[stateEl.length] = customOption;
+    }
+
+    var handleStateChange = function () {
+        stateEl.setAttribute("data-selected", stateEl.value);
+    };
+    stateEl.onchange = handleStateChange;
+    if (window.jQuery) {
+        window.jQuery(stateEl).off("change.stateSync").on("change.stateSync", handleStateChange);
+    }
+
+    refreshSelect2(stateEl, true);
 }
 
 
@@ -726,30 +777,36 @@ function populateCountries(countryElementId, stateElementId) {
 
     if (!countryEl) return;
 
-    var selectedCountry = countryEl.getAttribute('data-selected') || '';
+    var selectedCountry = countryEl.getAttribute('data-selected') || countryEl.value || '';
     countryEl.length = 0;
     countryEl.options[0] = new Option(countryI18n("Select Country"), "");
 
     for (var i = 0; i < country_arr.length; i++) {
         let country = country_arr[i].replace(/'/g, '`');
         let option = new Option(country_arr[i], country);
-        if (selectedCountry && selectedCountry === country) {
+        if (selectedCountry && selectedCountry.trim().toLowerCase() === country.trim().toLowerCase()) {
             option.selected = true;
         }
         countryEl.options[countryEl.length] = option;
     }
-    // # 913
-    countryEl.onchange = function () {
-        let selectedValue = this.value;
-        this.setAttribute("data-selected", selectedValue);
+
+    var handleCountryChange = function () {
+        var selectedVal = countryEl.value;
+        countryEl.setAttribute("data-selected", selectedVal);
+        if (stateEl) {
+            populateStates(countryElementId, stateElementId);
+        }
     };
+
+    countryEl.onchange = handleCountryChange;
+    if (window.jQuery) {
+        window.jQuery(countryEl).off("change.countrySync").on("change.countrySync", handleCountryChange);
+    }
+
     if (stateEl) {
         populateStates(countryElementId, stateElementId);
-        countryEl.onchange = function () {
-            populateStates(countryElementId, stateElementId);
-        };
     }
-    refreshSelect2(countryEl);
+    refreshSelect2(countryEl, false);
 }
 
 
@@ -757,6 +814,19 @@ function initCountryStateDropdowns() {
     populateCountries("id_country", "id_state");
     populateCountries("country", "state");
     populateCountries("id_employee_bank_details__country", "id_employee_bank_details__state");
+
+    // Generic selector for any other country/state pairs on the current page
+    document.querySelectorAll("select[name='country']").forEach(function (cEl) {
+        var form = cEl.closest("form");
+        if (form) {
+            var sEl = form.querySelector("select[name='state']");
+            if (sEl && cEl.id && sEl.id &&
+                cEl.id !== "id_country" && cEl.id !== "country" &&
+                cEl.id !== "id_employee_bank_details__country") {
+                populateCountries(cEl.id, sEl.id);
+            }
+        }
+    });
 }
 
 document.addEventListener("DOMContentLoaded", function () {

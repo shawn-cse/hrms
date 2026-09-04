@@ -107,11 +107,8 @@ _DEFAULT_DOMAIN_META = {"icon": "document-text-outline", **_NEUTRAL_TILE}
 
 @login_required
 def standard_report_catalog(request):
-    _ensure_definitions_loaded()
-    from django.db.models import Max
-
-    company_id = company_id_from_request(request)
-    grouped = reports_by_domain(user=request.user, company_id=company_id)
+    from django.shortcuts import redirect
+    return redirect("report-explorer")
 
     all_slugs = [r.slug for reports in grouped.values() for r in reports]
     last_run_by_slug = dict(

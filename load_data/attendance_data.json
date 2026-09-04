@@ -2211,7 +2211,8 @@
       "created_by": 1,
       "modified_by": 1,
       "is_active": true,
-      "time_runner": false,
+      "time_runner": true,
+      "enable_check_in": true,
       "company_id": null
     }
   },
@@ -2223,7 +2224,8 @@
       "created_by": 1,
       "modified_by": 1,
       "is_active": true,
-      "time_runner": false,
+      "time_runner": true,
+      "enable_check_in": true,
       "company_id": 1
     }
   },
@@ -2235,7 +2237,8 @@
       "created_by": 1,
       "modified_by": 1,
       "is_active": true,
-      "time_runner": false,
+      "time_runner": true,
+      "enable_check_in": true,
       "company_id": 2
     }
   },
@@ -2247,7 +2250,8 @@
       "created_by": 1,
       "modified_by": 1,
       "is_active": true,
-      "time_runner": false,
+      "time_runner": true,
+      "enable_check_in": true,
       "company_id": 3
     }
   },
@@ -4427,7 +4431,8 @@
       "created_by": 1,
       "modified_by": 1,
       "is_active": true,
-      "time_runner": false,
+      "time_runner": true,
+      "enable_check_in": true,
       "company_id": null
     }
   },
@@ -4439,7 +4444,8 @@
       "created_by": 1,
       "modified_by": 1,
       "is_active": true,
-      "time_runner": false,
+      "time_runner": true,
+      "enable_check_in": true,
       "company_id": 1
     }
   },
@@ -4451,7 +4457,8 @@
       "created_by": 1,
       "modified_by": 1,
       "is_active": true,
-      "time_runner": false,
+      "time_runner": true,
+      "enable_check_in": true,
       "company_id": 2
     }
   },
@@ -4463,7 +4470,8 @@
       "created_by": 1,
       "modified_by": 1,
       "is_active": true,
-      "time_runner": false,
+      "time_runner": true,
+      "enable_check_in": true,
       "company_id": 3
     }
   },

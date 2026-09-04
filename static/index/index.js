@@ -33,7 +33,7 @@ if (typeof i18nMessages === 'undefined') {
 // out a hung request, so without this a stalled server response leaves
 // the swap target empty indefinitely with no error ever surfacing.
 if (typeof htmx !== "undefined" && !htmx.config.timeout) {
-    htmx.config.timeout = 15000;
+    htmx.config.timeout = 60000;
 }
 
 var confirmModal = {

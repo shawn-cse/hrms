@@ -62,10 +62,12 @@ def backfill_employee_feature_coverage(today: date | None = None) -> dict[str, i
         EmployeeBankDetails._base_manager.get_or_create(
             employee_id_id=employee_id,
             defaults={
-                "bank_name": "Demo National Bank",
+                "bank_name": "BRAC Bank PLC",
                 "account_number": f"HRDEMO{employee_id:06d}",
-                "branch": "Main Branch",
-                "country": "Demo",
+                "branch": "Gulshan Branch",
+                "country": "Bangladesh",
+                "city": "Dhaka",
+                "state": "Dhaka",
             },
         )
         result["bank_details"] += 1

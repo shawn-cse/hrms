@@ -22,7 +22,7 @@
     hx-trigger="load, submit"
     hx-replace-url="false"
     hx-target="{{search_swap_target}}"
-    hx-timeout="15000"
+    hx-timeout="60000"
     hx-on:submit="htmxLoadIndicator(this);"
     hx-on::response-error="htmxLoadFailIndicator(this, event);"
     hx-on::send-error="htmxLoadFailIndicator(this, event);"

@@ -309,6 +309,7 @@ def clock_in(request):
             )
             # Refresh employee from DB so template re-evaluates is_clocked_in correctly
             employee.refresh_from_db()
+            messages.success(request, _("Checked in successfully."))
             return render(
                 request, "attendance/components/in_out_component.html", {"run": 1}
             )
@@ -575,8 +576,9 @@ def clock_out(request):
 
         # Refresh employee from DB so template re-evaluates is_clocked_in correctly
         employee.refresh_from_db()
+        messages.success(request, _("Checked out successfully."))
         return render(
-            request, "attendance/components/in_out_component.html", {"run": 1}
+            request, "attendance/components/in_out_component.html", {"run": 0}
         )
 
     else:

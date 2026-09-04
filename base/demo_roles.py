@@ -20,16 +20,16 @@ logger = logging.getLogger(__name__)
 # (user email, group name, company name)
 # Keep this small — enough to demo Roles & Permissions and company-scoped access.
 DEMO_ROLE_ASSIGNMENTS = (
-    ("alexander.smith@example.com", "Asset Manager", "Your Company"),
-    ("alexander.smith@example.com", "Asset Manager", "Your Company Inc."),
-    ("michael.brown@example.com", "HR Manager", "Your Company"),
-    ("sarah.anderson@example.com", "Payroll Manager", "Your Company"),
-    ("emily.clark@example.com", "Leave Manager", "Your Company"),
-    ("jessica.evans@example.com", "Attendance Manager", "Your Company"),
-    ("benjamin.parker@example.com", "Recruiter", "Your Company Ltd."),
-    ("lily.campbell@example.com", "Helpdesk Agent", "Your Company Inc."),
-    ("matthew.harris@example.com", "Performance Manager", "Your Company"),
-    ("david.king@example.com", "Project Manager", "Your Company"),
+    ("ashraful.mollah@example.com", "Asset Manager", "Your Company"),
+    ("ashraful.mollah@example.com", "Asset Manager", "Your Company Inc."),
+    ("tanvir.rahman@example.com", "HR Manager", "Your Company"),
+    ("nusrat.ahmed@example.com", "Payroll Manager", "Your Company"),
+    ("sadia.hossain@example.com", "Leave Manager", "Your Company"),
+    ("farhana.hasan@example.com", "Attendance Manager", "Your Company"),
+    ("kamrul.bhuiyan@example.com", "Recruiter", "Your Company Ltd."),
+    ("sharmin.patwary@example.com", "Helpdesk Agent", "Your Company Inc."),
+    ("arif.islam@example.com", "Performance Manager", "Your Company"),
+    ("shakib.khan@example.com", "Project Manager", "Your Company"),
 )
 
 

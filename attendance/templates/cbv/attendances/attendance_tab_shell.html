@@ -25,7 +25,8 @@
         // clear every sibling tab's content and drop its "loaded" flag so
         // hrms_tabs.html's own click handler re-fetches it fresh next
         // time it's opened, rather than reusing a stale, ID-colliding copy.
-        var myContent = document.currentScript.closest(".oh-tabs__content");
+        var myContent = (document.currentScript ? document.currentScript.closest(".oh-tabs__content") : null) ||
+            (document.getElementById("{{ container_id }}") ? document.getElementById("{{ container_id }}").closest(".oh-tabs__content") : null);
         var contents = myContent && myContent.closest(".oh-tabs__contents");
         if (!contents) return;
         var tabsRoot = contents.closest("#{{ tabs_root_id }}") || contents.parentElement;

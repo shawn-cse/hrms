@@ -59,11 +59,11 @@ JOB_ROLE_LABEL_RENAMES: dict[str, str] = {
 COMPANY_PROFILES: dict[str, dict] = {
     "Your Company": {
         "hq": True,
-        "address": "100 Market Street, Suite 400",
-        "country": "United States",
-        "state": "Nevada",
-        "city": "Las Vegas",
-        "zip": "89101",
+        "address": "Plot 15, Road 27, Gulshan-1",
+        "country": "Bangladesh",
+        "state": "Dhaka",
+        "city": "Dhaka",
+        "zip": "1212",
         "is_active": True,
     },
     "Your Company Inc.": {
